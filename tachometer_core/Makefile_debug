@@ -1,0 +1,46 @@
+SYSROOT := /home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm
+MORE_INCLUDES := -I/mnt/ramdisk/fftw3_cortex_a9/include -I./include
+CC := arm-linux-androideabi-gcc-4.4.3
+CFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu99 -c --sysroot=$(SYSROOT)
+LDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/fftw3_cortex_a9/lib -lfftw3f -lm
+
+################################################################################
+
+TARGET := fftw3_test
+SRCS := fftw3_prb.c \
+		auto_correlation.c \
+		max_absolute_16_c.c \
+		tachometer_history.c \
+		tachometer_process.c
+OBJS := $(SRCS:.c=.o)
+DEPEND_FILES := $(SRCS:.c=.o.d)
+ASSEMBLY_FILES := $(SRCS:.c=.s)
+
+#  Building on Linux
+RPATH='$$ORIGIN'
+DONE=@if [ -f $(1) ]; then echo Build completed.; fi
+RM=rm -f $(1)
+MD=@if [ ! -d $(1) ]; then mkdir $(1); fi
+CP=cp
+
+#######################################################
+
+all: $(TARGET)
+		$(call DONE,$(TARGET))
+		
+rebuild: clean all
+
+clean:
+	$(call RM,$(OBJS))
+	$(call RM,$(DEPEND_FILES))
+	$(call RM,$(TARGET))
+	$(call RM,$(ASSEMBLY_FILES))
+	$(call RM,output.txt)
+	$(call RM,*~)
+
+%.o: %.c
+	$(CC) -MMD -MP -MF $@.d $(CFLAGS) $(MORE_INCLUDES) $< -o $@
+	$(CC) -MMD -MP -MF $@.d $(CFLAGS) $(MORE_INCLUDES) $< -S
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) $(MORE_INCLUDES) -o $@

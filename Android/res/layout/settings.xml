@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content" >
+
+    <PreferenceCategory android:title="Profiles" >
+        <Preference
+            android:title="Profiles"
+            android:key="profiles"
+            android:summary="@string/profiles" />
+            
+		<ListPreference
+		    android:defaultValue="0"
+		    android:entries="@array/heli_type"
+		    android:entryValues="@array/heli_type_index"
+		    android:key="heli_type"
+		    android:summary="Standard Helicopter"
+		    android:title="Type of Helicopter"
+		    android:fitsSystemWindows="true" />
+		
+		<ListPreference
+		    android:defaultValue="0"
+		    android:entries="@array/blade"
+		    android:entryValues="@array/blade_index"
+		    android:key="blade"
+		    android:summary="2 Blades"
+		    android:title="Number of Blades" />
+		
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="Logging" >
+        <CheckBoxPreference
+		    android:defaultValue="true"
+		    android:key="auto_save_log"
+		    android:summary="Save Logs after Measuring"
+		    android:title="Save Logs Automatically" />
+        
+        <CheckBoxPreference
+		    android:defaultValue="true"
+		    android:key="pop_up_naming"
+		    android:summary="Edit the Name of Logs before saving"
+		    android:title="Log name Pop-up" />
+        
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="About this App" >
+        <Preference
+            android:title="Our Home page"
+        	android:summary="More cool apps are awaiting you" >
+        
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="http://android-elements.blogspot.com/" />
+    	</Preference>
+    
+        <!--EditTextPreference
+            android:dialogTitle="Enter text"
+            android:key="pref_text"
+            android:summary="Tap to enter some text"
+            android:title="Input text" /-->
+    </PreferenceCategory>
+    
+</PreferenceScreen>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp" >
+    
+    <vn.edu.hcmut.tachometer.ChartView
+        android:id="@+id/chartView"
+        android:layout_above="@+id/rpmCal"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		
+		android:layout_alignParentTop="true" />
+    
+    <TextView
+        android:id="@+id/rpmCal"
+        android:text="@string/val_rpm"
+        android:textSize="40sp"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dp"
+        
+        android:layout_above="@+id/buttonStart"
+        android:layout_centerHorizontal="true" />
+    
+    <Button
+        android:id="@+id/buttonStart"
+        android:text="@string/button_name"
+        android:layout_above="@+id/rpmLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    
+    <TextView
+        android:id="@+id/rpmLabel"
+        android:text="@string/lab_rpm"
+        android:layout_above="@+id/seekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true" />
+    
+    <TextView
+        android:id="@+id/rpmValue"
+        android:text="@string/val_rpm"
+        android:layout_above="@+id/seekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true" />
+    
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true" />
+    
+	<!-- android:progressDrawable="@layout/progress_color" -->
+    
+</RelativeLayout>

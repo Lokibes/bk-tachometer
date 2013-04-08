@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+	
+    <ListView
+        android:id="@+id/log_list"
+        
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentTop="true"
+        android:choiceMode="multipleChoice" />
+	
+    <Button
+        android:id="@+id/btn_dellog"
+        
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/btn_cancel" />
+    
+    <Button
+        android:id="@+id/btn_cancel"
+        android:text="@string/btn_cancel"
+        
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true" />
+    
+        <?ignore
+		android:layout_below="@+id/test_editvalue"
+		?>
+    
+    <?ignore
+    
+	<TextView
+        android:id="@+id/test_name"
+        android:text="Date"
+        android:textSize="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:gravity="center"
+        
+        android:layout_alignTop="@+id/test_editname"
+        android:layout_alignBottom="@+id/test_editname"
+        android:layout_alignParentLeft="true" />
+
+    <EditText
+        android:id="@+id/test_editname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left|center"
+        
+        android:layout_toRightOf="@+id/test_name"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        
+        android:inputType="textPersonName" >
+        <!-- <requestFocus/> -->
+    </EditText>
+	
+    <TextView
+        android:id="@+id/test_value"
+        android:text="Value"
+        android:textSize="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        
+        android:layout_alignTop="@+id/test_editvalue"
+        android:layout_alignBottom="@+id/test_editvalue"
+        android:layout_alignParentLeft="true" />
+    
+    <EditText
+        android:id="@+id/test_editvalue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left|center"
+        
+        android:layout_below="@+id/test_editname"
+        android:layout_toRightOf="@+id/test_value"
+        android:layout_alignLeft="@+id/test_editname"
+        android:layout_alignParentRight="true"
+        
+        android:inputType="number" >
+
+    </EditText>
+    
+	?>
+	
+</RelativeLayout>
