@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="US-ASCII" ?>
+<armcc_linux_config>
+<version>armcc5.01 build 113</version>
+<gcc_path></gcc_path>
+<gld_path></gld_path>
+<gas_path></gas_path>
+<gcc_version></gcc_version>
+<target_triple>arm-none-linux-gnueabi</target_triple>
+<gcc_system_includes></gcc_system_includes>
+<arch name="default" endian="little" state="default" interwork="default">
+    <sysroot>/home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm</sysroot>
+    <compiler_options>
+        <param name="-J/home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm/usr/include" />
+		<param name="-J/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/include" />
+		<param name="-J/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/include" />
+    </compiler_options>
+    <link_prefix_options>
+        <param name="-L--userlibpath=/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a" />
+		<param name="-L--userlibpath=/home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm/usr/lib" />		
+        <param guard="shared" inverse="true" name="" skip="2" />
+        <param guard="shared" inverse="false" name="-L--shared" />
+        <param guard="shared" inverse="false" name="-L--fpic" />
+        <param name="-L--dynamiclinker=/lib/ld-linux.so.3" />		
+    </link_prefix_options>
+    <link_suffix_options>
+        <param guard="static" inverse="true" name="" skip="1" />
+        <param guard="static" inverse="false" name="/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/crtbeginT.o" skip="3" />
+        <param guard="shared" inverse="true" name="" skip="1" />
+        <param guard="shared" inverse="false" name="/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/crtbeginS.o" skip="1" />
+        <param name="/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/crtbegin.o" />
+        <param guard="static" inverse="true" name="" skip="7" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc.a" skip="1" />
+        <param name="-Llibgcc.a" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc_eh.a" skip="1" />
+        <param name="-Llibgcc_eh.a" />
+        <param name="" skip="7" />
+        <param guard="static-libgcc" inverse="true" name="" skip="6" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc.a" skip="1" />
+        <param name="-Llibgcc.a" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc_eh.a" skip="1" />
+        <param name="-Llibgcc_eh.a" />
+        <param guard="static" inverse="false" name="" skip="14" />
+        <param guard="static-libgcc" inverse="false" name="" skip="13" />
+        <param guard="shared-libgcc" inverse="false" name="" skip="5" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc.a" skip="1" />
+        <param name="-Llibgcc.a" />
+        <param guard="shared-libgcc" inverse="true" name="" skip="6" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc_s.so" />
+        <param guard="shared" inverse="false" name="" skip="3" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibgcc.a" skip="1" />
+        <param name="-Llibgcc.a" />
+        <param guard="pthread" inverse="true" name="" skip="3" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibpthread.so" skip="1" />
+        <param name="-Llibpthread.a" />
+        <param guard="static" inverse="false" name="" skip="1" />
+        <param guard="static" inverse="true" name="-Llibc.so" skip="1" />
+        <param name="-Llibc.a" />
+        <param guard="shared" inverse="true" name="" skip="1" />
+        <param guard="shared" inverse="false" name="/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/crtendS.o" skip="1" />
+        <param name="/home/oneadmin/android-ndk-r8b/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/crtend.o" />
+        <param guard="c++" inverse="false" name="-L--library=stdc++" />
+        <param guard="c++" inverse="false" name="-L--library=m" />
+    </link_suffix_options>
+</arch>
+</armcc_linux_config>

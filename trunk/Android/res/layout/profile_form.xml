@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp" >
+    
+    <ImageView
+        android:id="@+id/profile_picture"
+        android:contentDescription="@string/image_description"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginBottom="10dp"
+        
+        android:background="@color/gray"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true" />
+    
+    <EditText
+        android:id="@+id/tv_profname"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/profile_picture"
+        
+        android:hint="@string/profname"
+        android:inputType="textPersonName" />
+    
+    <EditText
+        android:id="@+id/tv_profilemodel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/tv_profname"
+        
+        android:hint="@string/profmodel"
+        android:inputType="textPersonName" />
+    
+    <EditText
+        android:id="@+id/tv_blade"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/tv_profilemodel"
+        
+        android:hint="@string/profblade"
+        android:inputType="number" />
+    
+    <EditText
+        android:id="@+id/tv_minrpm"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/tv_blade"
+        
+        android:hint="@string/profminrpm"
+        android:inputType="number" />
+    
+    <EditText
+        android:id="@+id/tv_maxrpm"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/tv_minrpm"
+        
+        android:hint="@string/profmaxrpm"
+        android:inputType="number" />
+    
+    <Button
+        android:id="@+id/btn_cancel"
+        android:text="@string/btn_cancel"
+        
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true" />
+    
+    <Button
+        android:id="@+id/btn_saveprof"
+        
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/btn_cancel" />
+    
+</RelativeLayout>

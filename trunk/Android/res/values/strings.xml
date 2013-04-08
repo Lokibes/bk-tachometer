@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+   	<string name="lab_rpm">Estimated head speed:</string>
+   	<string name="val_rpm">0 RPM</string>
+    <string name="button_name">MEASURE HEAD SPEED</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_addprofile">New profile</string>
+    <string name="settings">Settings</string>
+    <string name="profiles">Profiles</string>
+    <string name="logs">Saved logs</string>
+    <string name="log_sort">Sort</string>
+    <string name="log_del">Delete</string>
+    <string name="image_description">Image loading</string>
+    <string name="app_name">Audio Processing</string>
+    
+    <string name="profname">Name</string>
+    <string name="profmodel">Model</string>
+    <string name="profblade">Number of blades</string>
+    <string name="profminrpm">Minimum RPM</string>
+    <string name="profmaxrpm">Maximum RPM</string>
+    
+    <string-array name="heli_type">
+        <item>Standard Helicopter</item>
+        <item>Microsized Helicopter</item>
+    </string-array>
+    
+    <string-array name="rpm_range">
+        <item>1000 ~ 4000 RPM</item>
+        <item>0 ~ 1000 RPM</item>
+    </string-array>
+    
+    <string-array name="heli_type_index">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    
+    <string-array name="blade">
+        <item>2 Blades</item>
+        <item>3 Blades</item>
+        <item>4 Blades</item>
+        <item>5 Blades</item>
+        <item>6 Blades</item>
+    </string-array>
+    
+    <string-array name="blade_index">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="sort_type">
+        <item>Profile type</item>
+        <item>Date created</item>
+        <item>Calculated RPM</item>
+    </string-array>
+    
+    <string-array name="sort_type_index">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    
+    <string-array name="profile_menu">
+        <item>Use</item>
+        <item>Edit</item>
+        <item>Delete</item>
+    </string-array>
+    
+    <color name="white">#FFFFFF</color>
+    <color name="gray">#C0C0C0</color>
+    
+    
+</resources>
