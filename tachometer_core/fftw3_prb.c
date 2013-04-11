@@ -65,8 +65,7 @@ int main(void)
 	int16_t* inAudio = malloc(TACHO_FRAME_LENGTH * LOOP_NUM * sizeof(int16_t));
 	fread(inAudio, sizeof(int16_t), TACHO_FRAME_LENGTH * LOOP_NUM, audioFile);
 
-	void* tacho_inst;
-	Tachometer_Create(&tacho_inst);
+	void* tacho_inst = Tachometer_Create();
 	Tachometer_Init(tacho_inst);
 	Tachometer_Config(tacho_inst, (estimatedFreq << 1));	// Fix the autocorrelation frequency doubling problem
 

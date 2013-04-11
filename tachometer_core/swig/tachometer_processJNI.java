@@ -9,7 +9,7 @@
 package vn.edu.hcmut.tachometer.core;
 
 public class tachometer_processJNI {
-  public final static native long Tachometer_Create(long jarg1);
+  public final static native long Tachometer_Create();
   public final static native long Tachometer_Init(long jarg1);
   public final static native long Tachometer_Free(long jarg1);
   public final static native long Tachometer_Config(long jarg1, long jarg2);
