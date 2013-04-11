@@ -20,7 +20,8 @@ void Tachometer_AutoCorrelation(int16_t* restrict in_vector,
 int32_t Tachometer_MaxAbsolute16C(int16_t* vector);
 
 // Create
-int32_t Tachometer_Create(void** tacho);
+//int32_t Tachometer_Create(void** tacho);
+void* Tachometer_Create();	// Hack code to run on Java
 
 // Initialize
 int32_t Tachometer_Init(void* tacho);

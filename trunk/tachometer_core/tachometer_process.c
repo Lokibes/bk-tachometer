@@ -15,17 +15,17 @@
 #define FREQ_TO_INDEX_COEF	(1 / (((float)(TACHO_SAMPLING_FREQ >> 1)) / ((float) TACHO_FFT_OUT_LENGTH)))
 
 // Create
-int32_t Tachometer_Create(void** tacho) {
-	Tacho_t** tacho_inst = (Tacho_t**) tacho;
+void* Tachometer_Create() {
+	Tacho_t* tacho_inst = (Tacho_t*) malloc(sizeof(Tacho_t));
 
-	*tacho_inst = (Tacho_t*) malloc(sizeof(Tacho_t));
-	Tacho_History_Create(&((*tacho_inst)->tacho_history_inst));
-	(*tacho_inst)->fft_in = fftwf_malloc(sizeof(float) * TACHO_FFT_IN_LENGTH);
-	(*tacho_inst)->fft_out = fftwf_malloc(
-			sizeof(fftw_complex) * TACHO_FFT_IN_LENGTH);
-	(*tacho_inst)->fft_out_magnitude = (float*) malloc(
+	Tacho_History_Create(&(tacho_inst->tacho_history_inst));
+	tacho_inst->fft_in = fftwf_malloc(sizeof(float) * TACHO_FFT_IN_LENGTH);
+	tacho_inst->fft_out = fftwf_malloc(
+			sizeof(fftwf_complex) * TACHO_FFT_IN_LENGTH);
+	tacho_inst->fft_out_magnitude = (float*) malloc(
 			sizeof(float) * TACHO_FFT_IN_LENGTH);
-	return 0;
+
+	return tacho_inst;
 }
 
 // Initialize

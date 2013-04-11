@@ -2,7 +2,7 @@
 %module tachometer_process
 
 %inline %{
-extern int32_t Tachometer_Create(void** tacho);
+extern void* Tachometer_Create();
 extern int32_t Tachometer_Init(void* tacho);
 extern int32_t Tachometer_Free(void* tacho);
 extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);

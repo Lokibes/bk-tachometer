@@ -9,8 +9,9 @@
 package vn.edu.hcmut.tachometer.core;
 
 public class tachometer_process {
-  public static SWIGTYPE_p_int32_t Tachometer_Create(SWIGTYPE_p_p_void tacho) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Create(SWIGTYPE_p_p_void.getCPtr(tacho)), true);
+  public static SWIGTYPE_p_void Tachometer_Create() {
+    long cPtr = tachometer_processJNI.Tachometer_Create();
+    return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
   public static SWIGTYPE_p_int32_t Tachometer_Init(SWIGTYPE_p_void tacho) {

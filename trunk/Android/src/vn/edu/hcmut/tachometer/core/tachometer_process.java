@@ -9,24 +9,25 @@
 package vn.edu.hcmut.tachometer.core;
 
 public class tachometer_process {
-  public static SWIGTYPE_p_int32_t Tachometer_Create(SWIGTYPE_p_p_void tacho) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Create(SWIGTYPE_p_p_void.getCPtr(tacho)), true);
+  public static SWIGTYPE_p_void Tachometer_Create() {
+    long cPtr = tachometer_processJNI.Tachometer_Create();
+    return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_int32_t Tachometer_Init(SWIGTYPE_p_void tacho) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Init(SWIGTYPE_p_void.getCPtr(tacho)), true);
+  public static long Tachometer_Init(SWIGTYPE_p_void tacho) {
+    return tachometer_processJNI.Tachometer_Init(SWIGTYPE_p_void.getCPtr(tacho));
   }
 
-  public static SWIGTYPE_p_int32_t Tachometer_Free(SWIGTYPE_p_void tacho) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Free(SWIGTYPE_p_void.getCPtr(tacho)), true);
+  public static long Tachometer_Free(SWIGTYPE_p_void tacho) {
+    return tachometer_processJNI.Tachometer_Free(SWIGTYPE_p_void.getCPtr(tacho));
   }
 
-  public static SWIGTYPE_p_int32_t Tachometer_Config(SWIGTYPE_p_void tacho, SWIGTYPE_p_int32_t estimatedFreq) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Config(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int32_t.getCPtr(estimatedFreq)), true);
+  public static long Tachometer_Config(SWIGTYPE_p_void tacho, long estimatedFreq) {
+    return tachometer_processJNI.Tachometer_Config(SWIGTYPE_p_void.getCPtr(tacho), estimatedFreq);
   }
 
-  public static SWIGTYPE_p_int32_t Tachometer_Process(SWIGTYPE_p_void tacho, SWIGTYPE_p_int16_t inAudio, SWIGTYPE_p_float resultFreq) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int16_t.getCPtr(inAudio), SWIGTYPE_p_float.getCPtr(resultFreq)), true);
+  public static long Tachometer_Process(SWIGTYPE_p_void tacho, SWIGTYPE_p_int16_t inAudio, SWIGTYPE_p_float resultFreq) {
+    return tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int16_t.getCPtr(inAudio), SWIGTYPE_p_float.getCPtr(resultFreq));
   }
 
 }

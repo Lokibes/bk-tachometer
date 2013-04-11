@@ -187,7 +187,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
 
 
-extern int32_t Tachometer_Create(void** tacho);
+extern void* Tachometer_Create();
 extern int32_t Tachometer_Init(void* tacho);
 extern int32_t Tachometer_Free(void* tacho);
 extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
@@ -198,20 +198,14 @@ extern int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFr
 extern "C" {
 #endif
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Create(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Create(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
-  void **arg1 = (void **) 0 ;
-  int32_t result;
+  void *result = 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(void ***)&jarg1; 
-  result = Tachometer_Create(arg1);
-  {
-    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-    memmove(resultptr, &result, sizeof(int32_t));
-    *(int32_t **)&jresult = resultptr;
-  }
+  result = (void *)Tachometer_Create();
+  *(void **)&jresult = result; 
   return jresult;
 }
 
