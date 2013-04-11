@@ -9,9 +9,20 @@
 package vn.edu.hcmut.tachometer.core;
 
 public class tachometer_processJNI {
-  public final static native long Tachometer_Create(long jarg1);
-  public final static native long Tachometer_Init(long jarg1);
-  public final static native long Tachometer_Free(long jarg1);
-  public final static native long Tachometer_Config(long jarg1, long jarg2);
-  public final static native long Tachometer_Process(long jarg1, long jarg2, long jarg3);
+	public final static native long Tachometer_Create(long jarg1);
+	public final static native long Tachometer_Init(long jarg1);
+	public final static native long Tachometer_Free(long jarg1);
+	public final static native long Tachometer_Config(long jarg1, long jarg2);
+	public final static native long Tachometer_Process(long jarg1, long jarg2, long jarg3);
+	
+	static {
+		try	{
+			System.loadLibrary("tachometer_core");
+			android.util.Log.e("JNI-TACH", "Loading done!");
+		}
+		
+		catch (UnsatisfiedLinkError e)	{
+			android.util.Log.e("JNI-TACH", e.getMessage());
+		}
+    }
 }

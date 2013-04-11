@@ -6,6 +6,8 @@ import android.util.AttributeSet;
 import android.view.View;
 
 public class ChartView extends GLSurfaceView {
+	private ChartViewRenderer myRenderer;
+	
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -27,7 +29,8 @@ public class ChartView extends GLSurfaceView {
         // Set the Renderer for drawing on the GLSurfaceView
         //Log.e("ChartView", "" + this.getWidth() + " " + this.getHeight());
         // Width, height are not available yet (context is uncompleted)
-        setRenderer(new ChartViewRenderer());
+        myRenderer = new ChartViewRenderer();
+        setRenderer(myRenderer);
         //setRenderer(null);
 
         // Render the view only when there is a change in the drawing data
@@ -42,9 +45,14 @@ public class ChartView extends GLSurfaceView {
         setEGLContextClientVersion(2);
 
         // Set the Renderer for drawing on the GLSurfaceView
-        setRenderer(new ChartViewRenderer());
+        myRenderer = new ChartViewRenderer();
+        setRenderer(myRenderer);
 
         // Render the view only when there is a change in the drawing data
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+	}
+	
+	public void drawLine(float x, float y)	{
+		myRenderer.mChart.lineCoords[(int) x] = y;
 	}
 }

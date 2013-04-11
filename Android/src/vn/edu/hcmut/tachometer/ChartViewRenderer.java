@@ -12,7 +12,7 @@ import android.opengl.GLSurfaceView;
 
 public class ChartViewRenderer implements GLSurfaceView.Renderer {
 	//private Triangle mTriangle;
-	private Chart mChart;
+	public Chart mChart;
 	
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
@@ -93,13 +93,16 @@ class Chart	{
          0.0f,  0.622008459f, 0.0f,   // top
         -0.5f, -0.311004243f, 0.0f,   // bottom left
          0.5f, -0.311004243f, 0.0f    // bottom right
-    };*/
-    static float lineCoords[] = {
+    };
+    public float lineCoords[] = {
        0.0f, 0.0f,
        500.0f, 500.0f
-    };
+    };*/
+    
+    public float lineCoords[];
+    
     //private final int vertexCount = triangleCoords.length / COORDS_PER_VERTEX;
-    private final int vertexCount = lineCoords.length / COORDS_PER_VERTEX;
+    private final int vertexCount = 4 / COORDS_PER_VERTEX;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // bytes per vertex
 
     // Set color with red, green, blue and alpha (opacity) values
@@ -112,23 +115,28 @@ class Chart	{
     
     public Chart() {
     	//Log.e("Chart", "" + width + " " + height);
+    	lineCoords = new float[1000];
+    	for (float f: lineCoords)	{
+    		f = 0.0f;
+    	}
     	
         // initialize vertex byte buffer for shape coordinates
     	// (number of coordinate values * 4 bytes per float)
-        ByteBuffer bb = ByteBuffer.allocateDirect(lineCoords.length * 4);
-        
+        //ByteBuffer bb = ByteBuffer.allocateDirect(lineCoords.length * 4);
+    	ByteBuffer bb = ByteBuffer.allocateDirect(4 * 4);
+    	
         // use the device hardware's native byte order
         bb.order(ByteOrder.nativeOrder());
 
         // create a floating point buffer from the ByteBuffer
         vertexBuffer = bb.asFloatBuffer();
         
-        // add the coordinates to the FloatBuffer
-        vertexBuffer.put(lineCoords);
-        
-        // set the buffer to read the first coordinate
-        //vertexBuffer.position(0);
-        vertexBuffer.flip();
+//        // add the coordinates to the FloatBuffer
+//        vertexBuffer.put(lineCoords);
+//        
+//        // set the buffer to read the first coordinate
+//        //vertexBuffer.position(0);
+//        vertexBuffer.flip();
 
         // prepare shaders and OpenGL program
         int vertexShader = ChartViewRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
@@ -176,21 +184,32 @@ class Chart	{
 
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
-
-        // Prepare the triangle coordinate data
-        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
-                                     GLES20.GL_FLOAT, false,
-                                     vertexStride, vertexBuffer);
-
-        // get handle to fragment shader's vColor member
-        mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
-
-        // Set color for drawing the triangle
-        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
         
-        // Draw the triangle
-        GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
+        for (int i = 0; i < lineCoords.length; i ++)	{
+        	vertexBuffer.clear();
+        	vertexBuffer.put(new float[]{ i, 250 - lineCoords[i], i, 250 + lineCoords[i] });
+        	/*if (i == 0)	{
+        		vertexBuffer.clear();
+        		vertexBuffer.put(new float[]{ i, 0, i, 500 });
+        	}*/
+            
+            vertexBuffer.flip();
+            
+            // Prepare the triangle coordinate data
+            GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
+                                         GLES20.GL_FLOAT, false,
+                                         vertexStride, vertexBuffer);
 
+            // get handle to fragment shader's vColor member
+            mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
+
+            // Set color for drawing the triangle
+            GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+            
+            // Draw the triangle
+            GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
+        }
+        
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }

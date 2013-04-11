@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import vn.edu.hcmut.tachometer.core.JavaTachometer;
+import vn.edu.hcmut.tachometer.core.tachometer_process;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,7 +18,6 @@ import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -39,7 +40,7 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
 	private TextView rpmValue;	// notifier of the seek bar
 	private TextView rpmCal;	// real-time calculated value of actual RPM
 	
-	private GLSurfaceView chartView;
+	private ChartView chartView;
 	
 	private Random randommer;	// randomly creates fake values for rpmCal. Testing purpose
 	private Timer timer;
@@ -49,8 +50,11 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
 	private FileWriter fw1, fw2;
 	int bufferSize = 0;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
-	byte data[];
+	//byte data[];
+	short data[];
 	private boolean isRecording = false;
+	
+	private JavaTachometer jTach;
 	
     /** Called when the activity is first created. */
     @Override
@@ -58,7 +62,9 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.relative);
         
-        chartView = (ChartView)findViewById(R.id.chartView);
+        //jTach = new JavaTachometer();
+        
+        chartView = (ChartView) findViewById(R.id.chartView);
         chartView.setClickable(false);
         
         /** IMPORTANT! constructor of notifier. Don't miss! */
@@ -254,6 +260,12 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
 	    	intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	    	startActivity(intent);
 	    	
+	    	isRecording = false;
+	    	if (null != recorder)	{
+	    		recorder.release();
+	    		recorder = null;
+	    	}
+	    	
 	    	this.finish();
 	    	
 	    	return true;
@@ -271,9 +283,10 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
 	        		int currentValue = randommer.nextInt(20) - 10 + rpm.getProgress();
 	        		
 	        		if (isUpdateNeeded)	{
+	        			rpmCal.setText(currentValue + " RPM");
+	        			/*
 	        			rpmCal.setText(stringFromJNI() + currentValue + " RPM");
-	        			
-	        			/*if (null != data)	{
+	        			if (null != data)	{
 	        				rpmCal.setText(stringFromJNI() + String.valueOf(data[0]) + " RPM");
 	        			}*/
 	        		}
@@ -282,7 +295,7 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
 	        
 	        // TODO Check if it work well and not miss any audio-data.
 	        if (isRecording)	{
-	        	if(AudioRecord.ERROR_INVALID_OPERATION != read && null != data)	{
+	        	/*if(AudioRecord.ERROR_INVALID_OPERATION != read && null != data)	{
     				byte[] byte_reverse = processedByteArray(data, 1, data.length);
     				try {
     					char[] num = new char[data.length];
@@ -307,28 +320,57 @@ public class DemoUIActivity extends Activity implements OnSeekBarChangeListener,
     			
     			else	{
     				Log.e("RECORD", "ERROR_INVALID_OPERATION");
-    			}
+    			}*/
 	        	
-	    		data = new byte[bufferSize];
+	    		data = new short[bufferSize];
 	        	read = recorder.read(data, 0, bufferSize);
+	        	
+	        	/** Visualize the sound wave */
+	        	int width = 1000, height = 500;
+	            int StartX = 0;
+	            
+	         	/**
+	         	 * Here is where the real calculations is taken in to action
+	         	 * In this while loop, we calculate the start and stop points
+	         	 * for both X and Y
+	         	 * 
+	         	 * The line is then drawer to the canvas with drawLine method
+	         	 */
+	         	while (StartX < width)	{
+	         		int mapX = StartX * (int) (bufferSize / width);
+	         		if (null != data)	{
+	         			int StartY = data[mapX] / 20;
+	         			chartView.drawLine(StartX, StartY);
+	         			
+	         			Log.e("data filled", Integer.toString(data.length) + " x = " + StartX);
+	         		}
+	         		
+	         		StartX ++;
+	         		
+	         		if (StartX == width)	{
+	         			chartView.requestRender();
+	         			StartX = 0;
+	         			return;
+	         		}
+	         	}
 	        	
 	        	Log.e("RECORD", "Read " + read + " bytes from the device recorder");
 	        }
 		}
 	}
 	
-	
 	/** JNI methods */
 	// Return the maximum absolute 16 bit value in an array
-	private native int Tachometer_MaxAbsolute16C(short[] vector);
+	/*private native int Tachometer_MaxAbsolute16C(short[] vector);
 	
 	static {
 		try	{
-			System.loadLibrary("hello-jni");
+			//System.loadLibrary("hello-jni");
+			System.loadLibrary("tachometer_core");
 		}
 		
 		catch (UnsatisfiedLinkError e)	{
 			Log.e("ULE", e.getMessage());
 		}
-    }
+    }*/
 }
