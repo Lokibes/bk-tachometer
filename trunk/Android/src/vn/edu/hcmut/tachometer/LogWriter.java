@@ -70,12 +70,12 @@ public class LogWriter {
 		if (!toWrite.exists()) {
 			try {
 				if (!folder.mkdirs())	{
-					android.util.Log.e("Save", "Failed to create directories for save file!");
+					//android.util.Log.e("Save", "Failed to create directories for save file!");
 				}
 				
 				toWrite.createNewFile();
 			} catch (IOException e) {
-				android.util.Log.e("Save", "Failed to create save file! " + e.getMessage());
+				//android.util.Log.e("Save", "Failed to create save file! " + e.getMessage());
 			}
 		}
 		
@@ -89,7 +89,7 @@ public class LogWriter {
 		
 		XmlSerializer xmls = Xml.newSerializer();
 		
-		android.util.Log.e("PRINTLN", folder.getAbsolutePath() + File.separator + filename);
+		//android.util.Log.e("PRINTLN", folder.getAbsolutePath() + File.separator + filename);
 		
 		try {
 			xmls.setOutput(outputStream, null);
