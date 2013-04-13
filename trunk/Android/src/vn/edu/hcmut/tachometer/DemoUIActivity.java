@@ -10,6 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import vn.edu.hcmut.tachometer.core.JavaTachometer;
+import vn.edu.hcmut.tachometer.core.SWIGTYPE_p_int32_t;
 import vn.edu.hcmut.tachometer.core.tachometer_process;
 import android.app.Activity;
 import android.content.Intent;
@@ -65,7 +66,8 @@ public class DemoUIActivity extends Activity implements
 		setContentView(R.layout.relative);
 
 		jTach = new JavaTachometer();
-
+		jTach.jTachConfig(100);
+		
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
 
