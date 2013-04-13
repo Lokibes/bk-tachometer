@@ -23,11 +23,9 @@ public class tachometer_processJNI {
 	static {
 		try {
 			System.loadLibrary("tachometer_core");
-			android.util.Log.e("tachometer_processJNI",
-					"Loading the tachometer_core library successfully");
+			//android.util.Log.e("tachometer_processJNI", "Loading the tachometer_core library successfully");
 		} catch (UnsatisfiedLinkError e) {
-			android.util.Log.e("tachometer_processJNI",
-					"Cannot load the tachometer_core library");
+			//android.util.Log.e("tachometer_processJNI", "Cannot load the tachometer_core library");
 		}
 	}
 }

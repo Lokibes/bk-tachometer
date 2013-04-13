@@ -6,6 +6,8 @@
     
     <vn.edu.hcmut.tachometer.ChartView
         android:id="@+id/chartView"
+        android:keepScreenOn="true"
+        
         android:layout_above="@+id/rpmCal"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
