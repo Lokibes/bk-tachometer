@@ -3,6 +3,7 @@ package vn.edu.hcmut.tachometer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 	
 	private String fileToDelete = null;
 	private Uri mImageCaptureUri;
+	private String avaPath = null;
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -63,14 +65,36 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 		        if (extras != null) {	        	
 		            Bitmap photo = extras.getParcelable("data");
 		            ((ImageView) findViewById(R.id.profile_picture)).setImageBitmap(photo);
+		            
+		            // TODO save the croped image to profiles folder,
+			        // update relative avatar link in xml file
+		            
+			        //1.Create a file from a URI path as:
+			        //File from = new File(mImageCaptureUri.getPath());
+			        
+			        //2.Create another File where you want the file to save as:
+		    		FileOutputStream out;
+			        File to = new File(avaPath + File.separator + "tmp_avatar.png");
+	    			
+					try {
+						out = new FileOutputStream(to);
+						photo.compress(Bitmap.CompressFormat.PNG, 90, out);
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		    			
+			        //3.Rename the file as:
+			        //from.renameTo(to);
+			        // With this the file from default path
+			        // is automatically deleted and created at the new path.
+			        
+			        // Just to ensure
+			        //System.gc();
+			        
+		            android.util.Log.e("TMP-AVA", to.getAbsolutePath());
 		        }
-		        
-		        // TODO save the croped image to profiles folder,
-		        // update relative avatar link in xml file
-		        
-		        File f = new File(mImageCaptureUri.getPath());
-		        if (f.exists()) f.delete();
-	
+		                
 		        break;
 	    }
 	}
@@ -87,7 +111,9 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
         	Toast.makeText(this, "Can not find image crop app", Toast.LENGTH_SHORT).show();
         	
             return;
-        } else {
+        }
+        
+        else {
         	intent.setData(mImageCaptureUri);
             
             intent.putExtra("outputX", 200);
@@ -98,7 +124,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
             intent.putExtra("return-data", true);
             
         	if (size == 1) {
-        		Intent i 		= new Intent(intent);
+        		Intent i = new Intent(intent);
 	        	ResolveInfo res	= list.get(0);
 	        	
 	        	i.setComponent( new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
@@ -138,18 +164,26 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_form);
         
+        String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+		File path = new File(baseDir + File.separator + "50802566/avatars");
+		if (!path.exists())	{	path.mkdirs();	}
+		avaPath = path.getAbsolutePath();
+        
         final String[] items = new String [] {"Take from camera", "Select from gallery"};				
 		ArrayAdapter<String> adapter = new ArrayAdapter<String> (this, android.R.layout.select_dialog_item,items);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		
 		builder.setTitle("Select Profile image");
 		builder.setAdapter( adapter, new DialogInterface.OnClickListener() {
-			public void onClick( DialogInterface dialog, int item ) { //pick from camera
-				if (item == 0) {
-					Intent intent 	 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			public void onClick( DialogInterface dialog, int item ) {
+				if (item == 0) { //pick from camera
+					Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 					
-					mImageCaptureUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
-									   "tmp_avatar_" + String.valueOf(System.currentTimeMillis()) + ".jpg"));
+					mImageCaptureUri = Uri.fromFile(new File(
+							Environment.getExternalStorageDirectory(),
+								"tmp_avatar_" +
+								String.valueOf(System.currentTimeMillis()) +
+								".jpg"));
 
 					intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
 
@@ -160,7 +194,9 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 					} catch (ActivityNotFoundException e) {
 						e.printStackTrace();
 					}
-				} else { //pick from file
+				}
+				
+				else { //pick from file
 					Intent intent = new Intent();
 					
 	                intent.setType("image/*");
@@ -204,6 +240,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 				
 				// According to the case, set relative label of the SAVE button. Default is in @string/
 				((Button) findViewById(R.id.btn_saveprof)).setText("SAVE CHANGES");
+				((ImageView) findViewById(R.id.profile_picture)).setImageBitmap(ProfileViewAdapter.decodeSampledBitmapFromResource(toEdit.avatar, 200, 200));
 			} catch (FileNotFoundException e) {
 				android.util.Log.e("PROF_MOD", e.toString());
 			} catch (XmlPullParserException e) {
@@ -233,7 +270,16 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 				
 				String filename = name + " " + date + ".prof";
 				
-				String avatar = "default link to the empty profile avatar";
+				File from = new File(avaPath + File.separatorChar + "tmp_avatar.png");
+				if (!from.exists())	{
+		        	from = new File(avaPath + File.separatorChar + new File(fileToDelete).getName().replace(".prof", ".png"));
+		        }
+				
+				File to = new File(avaPath + File.separatorChar + name + " " + date + ".png");
+	        	from.renameTo(to);
+	        	android.util.Log.e("onSave", "Changed " + from.getAbsolutePath() + " to " + to.getAbsolutePath());
+				String avatar = to.getAbsolutePath();
+				
 				int minRPM = Integer.parseInt(((EditText) findViewById(R.id.tv_minrpm)).getText().toString());
 				int maxRPM = Integer.parseInt(((EditText) findViewById(R.id.tv_maxrpm)).getText().toString());
 				int numBlade = Integer.parseInt(((EditText) findViewById(R.id.tv_blade)).getText().toString());
@@ -289,7 +335,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 					}
 				}
 				
-				android.util.Log.e("onClick", name + " " + avatar + " " + minRPM + " " + maxRPM + " " + numBlade);
+				android.util.Log.e("onSave", name + " " + avatar + " " + minRPM + " " + maxRPM + " " + numBlade);
 				
 		    	startActivity(i);
 		    	
