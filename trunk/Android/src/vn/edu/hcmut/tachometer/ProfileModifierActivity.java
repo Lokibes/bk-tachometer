@@ -240,7 +240,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 				
 				// According to the case, set relative label of the SAVE button. Default is in @string/
 				((Button) findViewById(R.id.btn_saveprof)).setText("SAVE CHANGES");
-				((ImageView) findViewById(R.id.profile_picture)).setImageBitmap(ProfileViewAdapter.decodeSampledBitmapFromResource(toEdit.avatar, 200, 200));
+				((ImageView) findViewById(R.id.profile_picture)).setImageBitmap(BitmapUtil.decodeSampledBitmapFromResource(toEdit.avatar, 200, 200));
 			} catch (FileNotFoundException e) {
 				android.util.Log.e("PROF_MOD", e.toString());
 			} catch (XmlPullParserException e) {

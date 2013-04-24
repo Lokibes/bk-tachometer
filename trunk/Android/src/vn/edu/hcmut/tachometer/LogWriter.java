@@ -15,7 +15,7 @@ import android.os.Environment;
 import android.util.Xml;
 
 public class LogWriter {
-	public void writeInternal(Context cw, String filename, String content)	{
+	public void writeInternal(Context cw, String profile, String filename, String content)	{
 		File file = cw.getFileStreamPath(filename);
 		if (!file.exists())	{
 			file = new File(cw.getFilesDir(), "50802566/logs" + filename);
@@ -32,6 +32,11 @@ public class LogWriter {
 			xmls.startDocument(null, true);
 			
 			xmls.startTag("", "log");
+			
+				xmls.startTag("", "profile");
+					xmls.text(profile);
+				xmls.endTag("", "profile");
+				
 				xmls.startTag("", "date");
 					Date date = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss").parse(filename.replace(".xml", ""));
 					xmls.text(date.toString());
@@ -40,6 +45,7 @@ public class LogWriter {
 				xmls.startTag("", "value");
 					xmls.text(content);
 				xmls.endTag("", "value");
+				
 			xmls.endTag("", "log");
 
 			// end DOCUMENT
@@ -63,7 +69,7 @@ public class LogWriter {
 		}
 	}
 	
-	public void writeExternal(Context cw, String filename, String content) 	{
+	public void writeExternal(Context cw, String profile, String filename, String content) 	{
 		File folder = new File(Environment.getExternalStorageDirectory(), "50802566/logs");
 		File toWrite = new File(folder, filename + ".xml");
 		
@@ -98,6 +104,11 @@ public class LogWriter {
 			xmls.startDocument(null, true);
 			
 			xmls.startTag("", "log");
+			
+				xmls.startTag("", "profile");
+					xmls.text(profile);
+				xmls.endTag("", "profile");
+		
 				xmls.startTag("", "date");
 					Date fromName = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss").parse(filename);
 					String date = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss").format(fromName);

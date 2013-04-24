@@ -285,8 +285,8 @@ public class ProfileActivity extends Activity implements OnClickListener	{
 	    
 	    if (list_file.length == 0)	{
 	    	String files[] = {
-	    			"micro_helicopter.prof",
-	    			"standard_helicopter.prof"	};
+	    			"Microsized Helicopter 01_04_2013 - 01_00_00.prof",
+	    			"Standard Helicopter 01_04_2013 - 01_00_01.prof"	};
 	    	InputStream in = null;
 	    	OutputStream out = null;
 	    	

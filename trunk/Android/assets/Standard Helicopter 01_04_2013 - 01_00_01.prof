@@ -1,0 +1,6 @@
+<profile>
+	<name>Standard Helicopter</name>
+	<minRPM>1000</minRPM>
+	<maxRPM>4000</maxRPM>
+	<numBlade>3</numBlade>
+</profile>

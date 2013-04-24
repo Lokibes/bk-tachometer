@@ -13,6 +13,7 @@ import vn.edu.hcmut.tachometer.core.JavaTachometer;
 import vn.edu.hcmut.tachometer.core.SWIGTYPE_p_int32_t;
 import vn.edu.hcmut.tachometer.core.tachometer_process;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -20,6 +21,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -93,6 +95,9 @@ public class DemoUIActivity extends Activity implements
 	protected void onStart() {
 		super.onStart();
 
+		SharedPreferences test_curname = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+        android.util.Log.e("CURRENT PROF", test_curname.getString("current_name", "not found"));
+		
 		/** Adapt the seek bar and stuffs to the pre-defined settings */
 		// TODO change to the global shared pref, for the sake of the whole app
 		SharedPreferences settings = PreferenceManager
@@ -236,10 +241,30 @@ public class DemoUIActivity extends Activity implements
 			if (auto_save) {
 				// Filenames cannot contain "/"
 				LogWriter lw = new LogWriter();
-				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss")
-						.format(new Date());
-				lw.writeExternal(this, fDate, rpmCal.getText().toString());
-
+				String prof = "Unknown profile";
+				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss").format(new Date());
+				
+				SharedPreferences global = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+				String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+				File path = new File(baseDir + File.separator + "50802566/profiles");
+				if (!path.exists())	{	path.mkdirs();	}
+			    File[] list_file = path.listFiles();
+				
+			    if (list_file.length != 0)	{
+			    	for (File file : list_file)	{
+			    		if (file.getName().startsWith(global.getString("current_name", "not found")))	{
+			    			prof = file.getAbsolutePath();
+			    			break;
+			    		}
+			    		
+			    		else	{
+			    			android.util.Log.e("SAVING LOG", file.getName() + " is not started by " + global.getString("current_name", "not found"));
+			    		}
+			    	}
+			    }
+			    
+			    lw.writeExternal(this, prof, fDate, rpmCal.getText().toString());
+			    
 				notifier.setText("Saved " + rpmCal.getText().toString());
 				notifier.show();
 			}

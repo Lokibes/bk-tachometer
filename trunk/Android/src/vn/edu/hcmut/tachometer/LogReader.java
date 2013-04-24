@@ -26,6 +26,7 @@ public class LogReader {
     private Log readLog(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "log");
         
+        String profile = null;
         String date = null;
         String value = null;
         
@@ -50,12 +51,19 @@ public class LogReader {
 	            }
             }
             
+            else if (tag_name.equals("profile")) {
+            	if (parser.next() == XmlPullParser.TEXT) {
+            		profile = parser.getText();
+	                parser.nextTag();
+	            }
+            }
+            
             else {
                 skip(parser);
             }
         }
         
-		return new Log(date, value);
+		return new Log(profile, date, value);
     }
     
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
