@@ -6,10 +6,12 @@ import java.util.Comparator;
 import java.util.Date;
 
 public class Log	{
+	public String profile;
     public String date;
     public String value;
 
-    public Log(String date, String value) {
+    public Log(String profile, String date, String value) {
+    	this.profile = profile;
         this.date = date;
         this.value = value;
     }
@@ -41,16 +43,14 @@ public class Log	{
     
     public static Comparator<Log> COMPARE_BY_PROFILE = new Comparator<Log>() {
         public int compare(Log one, Log other) {
-        	int valueOne = Integer.valueOf(one.value.replace("JNI: ", "").replace(" RPM", ""));
-        	int valueOther = Integer.valueOf(other.value.replace("JNI: ", "").replace(" RPM", ""));
-        	
-            return Integer.valueOf(valueOne).compareTo(Integer.valueOf(valueOther));
+            return one.profile.compareTo(other.profile);
         }
     };
     
     /** Template of a log_<date>.xml file
      * 
      * <log>
+     * 		<profile>Type of being used profile<profile>
      * 		<date>Date of saving the Log</date>
      * 		<value>Calculated value of RPM</value>
      * </log>
