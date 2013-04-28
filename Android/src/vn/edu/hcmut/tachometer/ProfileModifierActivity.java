@@ -42,6 +42,7 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 	private static final int PICK_FROM_FILE = 3;
 	
 	private String fileToDelete = null;
+	private String tempAvaToDelete = null;
 	private Uri mImageCaptureUri;
 	private String avaPath = null;
 	
@@ -185,6 +186,8 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 								String.valueOf(System.currentTimeMillis()) +
 								".jpg"));
 
+					tempAvaToDelete = mImageCaptureUri.getPath();
+					
 					intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
 
 					try {
@@ -270,15 +273,24 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 				
 				String filename = name + " " + date + ".prof";
 				
-				File from = new File(avaPath + File.separatorChar + "tmp_avatar.png");
-				if (!from.exists())	{
-		        	from = new File(avaPath + File.separatorChar + new File(fileToDelete).getName().replace(".prof", ".png"));
-		        }
+				String avatar = "";
 				
-				File to = new File(avaPath + File.separatorChar + name + " " + date + ".png");
-	        	from.renameTo(to);
-	        	android.util.Log.e("onSave", "Changed " + from.getAbsolutePath() + " to " + to.getAbsolutePath());
-				String avatar = to.getAbsolutePath();
+				if (fileToDelete != null)	{ // Modifying
+					File from = new File(avaPath + File.separatorChar + "tmp_avatar.png");
+					if (!from.exists())	{
+			        	from = new File(avaPath + File.separatorChar + new File(fileToDelete).getName().replace(".prof", ".png"));
+			        }
+					
+					File to = new File(avaPath + File.separatorChar + name + " " + date + ".png");
+					avatar = to.getAbsolutePath();
+		        	from.renameTo(to);
+		        	
+		        	android.util.Log.e("onSave", "Changed " + from.getAbsolutePath() + " to " + to.getAbsolutePath());
+				}
+				
+				else	{
+					
+				}
 				
 				int minRPM = Integer.parseInt(((EditText) findViewById(R.id.tv_minrpm)).getText().toString());
 				int maxRPM = Integer.parseInt(((EditText) findViewById(R.id.tv_maxrpm)).getText().toString());
@@ -355,6 +367,13 @@ public class ProfileModifierActivity extends Activity implements OnClickListener
 		    	break;
 			default:
 				break;
+		}
+		
+		if (null != tempAvaToDelete)	{
+			File x = new File(tempAvaToDelete);
+			if (x.delete())	{
+				android.util.Log.e("onCreating", x.getAbsolutePath() + " was deleted");
+			}
 		}
 		
 		this.finish();
