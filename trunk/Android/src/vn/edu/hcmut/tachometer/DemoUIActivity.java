@@ -251,14 +251,16 @@ public class DemoUIActivity extends Activity implements
 			    File[] list_file = path.listFiles();
 				
 			    if (list_file.length != 0)	{
-			    	for (File file : list_file)	{
-			    		if (file.getName().startsWith(global.getString("current_name", "not found")))	{
-			    			prof = file.getAbsolutePath();
+			    	for (int i = 0; i < list_file.length; i ++)	{
+			    		if (list_file[i].getName().startsWith(global.getString("current_name", "not found")))	{
+			    			prof = list_file[i].getAbsolutePath();
 			    			break;
 			    		}
 			    		
-			    		else	{
-			    			android.util.Log.e("SAVING LOG", file.getName() + " is not started by " + global.getString("current_name", "not found"));
+			    		else if (i == list_file.length)	{
+			    			prof = "Default " + global.getString("current_name", "not found");
+			    			android.util.Log.e("SAVING LOG", list_file[i].getName() + " is not started by " + global.getString("current_name", "not found"));
+			    			break;
 			    		}
 			    	}
 			    }

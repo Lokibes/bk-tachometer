@@ -70,7 +70,14 @@ class ProfileViewAdapter extends ArrayAdapter<Profile>	{
 							profileList.get(position).maxRPM + " RPM";
 		profileholder.summary_view.setText(summary);
 		//profileholder.img_view.setImageURI(Uri.fromFile(new File(profileList.get(position).avatar)));
-		profileholder.img_view.setImageBitmap(BitmapUtil.decodeSampledBitmapFromResource(profileList.get(position).avatar, 200, 200));
+		if (!"".equals(profileList.get(position).avatar))	{
+			profileholder.img_view.setImageBitmap(BitmapUtil.decodeSampledBitmapFromResource(profileList.get(position).avatar, 200, 200));
+		}	
+		
+		else	{
+			profileholder.img_view.setBackgroundColor(Color.GRAY);
+		}
+		
 		convertView.setBackgroundColor(Color.BLACK);
 		
 		if (position == currentPos)	{
