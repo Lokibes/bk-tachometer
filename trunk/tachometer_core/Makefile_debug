@@ -1,8 +1,8 @@
 SYSROOT := /home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm
-MORE_INCLUDES := -I/mnt/ramdisk/fftw3_cortex_a9/include -I./include
+MORE_INCLUDES := -I/mnt/ramdisk/Thesis/fftw3_cortex_a9/include -I./include
 CC := arm-linux-androideabi-gcc-4.4.3
 CFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu99 -c --sysroot=$(SYSROOT)
-LDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/fftw3_cortex_a9/lib -lfftw3f -lm
+LDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/Thesis/fftw3_cortex_a9/lib -lfftw3f -lm
 
 ################################################################################
 

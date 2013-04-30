@@ -2,9 +2,9 @@
 # ./build.sh
 #
 
-PROJECT_DIR=/mnt/ramdisk/bk-tachometer/trunk/tachometer_core
+PROJECT_DIR=/mnt/ramdisk/Thesis/bk-tachometer/trunk/tachometer_core
 MOBILE_DIR=/home/minhluan/dev
-JNI_DIR=/mnt/ramdisk/bk-tachometer/trunk/Android/jni
+JNI_DIR=/mnt/ramdisk/Thesis/bk-tachometer/trunk/Android/jni
 
 case "$1" in
 	clean)

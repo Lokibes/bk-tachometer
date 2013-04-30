@@ -17,7 +17,7 @@ public class tachometer_processJNI {
 
 	public final static native long Tachometer_Config(long jarg1, long jarg2);
 
-	public final static native long Tachometer_Process(long jarg1, long jarg2,
+	public final static native long Tachometer_Process(long jarg1, short[] audioArray,
 			long jarg3);
 
 	static {

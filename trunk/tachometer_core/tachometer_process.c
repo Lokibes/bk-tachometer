@@ -92,10 +92,11 @@ int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 }
 
 // Process:
-int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFreq) {
+float Tachometer_Process(void* tacho, int16_t* inAudio) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
+	float resultFreq = 0.0f;
 	if (tacho_inst == NULL) {
-		return -1;
+		return -1.0f;
 	}
 
 	/*
@@ -149,8 +150,8 @@ int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFreq) {
 			if (tacho_history_inst->accept_times >= TACHO_HISTORY_CAPACITY) {
 				// TACHO_HISTORY_CAPACITY == 25: the frequency is stable for 1 second long
 				// This frequency is the rotary frequency
-				*resultFreq = average / 2.0f;	// Divide by 2.0f to fix the autocorrelation frequency doubling problem
-				return 1;
+				resultFreq = average / 2.0f;	// Divide by 2.0f to fix the autocorrelation frequency doubling problem
+				return resultFreq;
 			}
 		} else {
 			/*
@@ -164,8 +165,8 @@ int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFreq) {
 		 */
 	} else {
 		// ERROR
-		return -1;
+		return -1.0f;
 	}
 
-	return 0;
+	return 0.0f;	// Means that has not found a rotary frequency
 }

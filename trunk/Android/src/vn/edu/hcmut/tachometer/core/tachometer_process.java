@@ -26,8 +26,8 @@ public class tachometer_process {
     return tachometer_processJNI.Tachometer_Config(SWIGTYPE_p_void.getCPtr(tacho), estimatedFreq);
   }
 
-  public static long Tachometer_Process(SWIGTYPE_p_void tacho, SWIGTYPE_p_int16_t inAudio, SWIGTYPE_p_float resultFreq) {
-    return tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int16_t.getCPtr(inAudio), SWIGTYPE_p_float.getCPtr(resultFreq));
+  public static long Tachometer_Process(SWIGTYPE_p_void tacho, short[] inAudio, SWIGTYPE_p_float resultFreq) {
+    return tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), inAudio, SWIGTYPE_p_float.getCPtr(resultFreq));
   }
 
 }

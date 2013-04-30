@@ -37,11 +37,11 @@ int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
  * Output:
  * 			float* resultFreq		The result of frequency if found
  * Return:
- * 			-1		Error
- * 			0		Not a rotary frequency
- * 			1		Is a rotary frequency
+ * 			-1.0f					Error
+ * 			0.0f					Not a rotary frequency
+ * 			? > 0.0f				Is a rotary frequency
  */
-int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFreq);
+float Tachometer_Process(void* tacho, int16_t* inAudio);
 
 static __inline int16_t Tachometer_GetSizeInBits(uint32_t n) {
 	int32_t bits;
