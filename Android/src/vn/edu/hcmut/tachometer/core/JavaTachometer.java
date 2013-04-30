@@ -9,18 +9,18 @@ public class JavaTachometer {
 		
 		long ret = tachometer_process.Tachometer_Init(tacho_inst);
 		if (ret != -1) {
-			android.util.Log.e("J-TACH", "Tachometer_Init succeeds");
+			android.util.Log.e("J-TACH", "Tachometer_Init succeeds with result: " + ret);
 		} else {
 			android.util.Log.e("J-TACH", "Tachometer_Init fails");
 			return;
 		}
 	}
 	
-	public void jTachConfig(int estimatedFreq)	{
+	public void jTachConfig(long estimatedFreq)	{
 		// TODO use the core and user 's inputs to get estimated frequency
 		android.util.Log.e("J-TACH", "Before config");
-		long l = tachometer_process.Tachometer_Config(tacho_inst, estimatedFreq);
-		android.util.Log.e("J-TACH", "Config done with result: " + l);
+		long ret = tachometer_process.Tachometer_Config(tacho_inst, estimatedFreq);
+		android.util.Log.e("J-TACH", "Config done with result: " + ret);
 	}
 	
 	public void jTachProcess()	{

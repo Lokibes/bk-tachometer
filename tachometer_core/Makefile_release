@@ -4,7 +4,7 @@ SYSROOT := /home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm
 ABI := -marm -march=armv7-a -mfloat-abi=softfp
 VECTORIZE_OPTS := -ftree-vectorize -ftree-vectorizer-verbose=2
 CC_OPTS := -c -O3 $(VECTORIZE_OPTS) -fsingle-precision-constant -Warmcc,--cpu=Cortex-A9,--fpu=VFPv3,--diag_warning=optimizations,--c99 --sysroot=$(SYSROOT) $(ABI)
-MORE_INCLUDES := -I/mnt/ramdisk/fftw3_cortex_a9/include -I./include
+MORE_INCLUDES := -I/mnt/ramdisk/Thesis/fftw3_cortex_a9/include -I./include
 FAST_MATH := -ffast-math
 
 ################################################################################

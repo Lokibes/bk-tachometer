@@ -68,8 +68,8 @@ public class DemoUIActivity extends Activity implements
 		setContentView(R.layout.relative);
 
 		jTach = new JavaTachometer();
-		//jTach.jTachConfig(100);
-		
+		jTach.jTachConfig((long) 2000);
+
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
 

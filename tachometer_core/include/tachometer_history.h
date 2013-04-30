@@ -17,10 +17,10 @@
 typedef struct {
 	int32_t size;
 	float* data;
-	int begin;
-	int end;
+	int32_t begin;
+	int32_t end;
 	float sum;
-	int accept_times;
+	int32_t accept_times;
 } Tacho_History_t;
 
 int32_t Tacho_History_Create(Tacho_History_t** tacho_history);

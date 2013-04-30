@@ -194,9 +194,9 @@ extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
 extern int32_t Tachometer_Process(void* tacho, int16_t* inAudio, float* resultFreq);
 
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Create(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
@@ -219,11 +219,12 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
   (void)jcls;
   arg1 = *(void **)&jarg1; 
   result = Tachometer_Init(arg1);
-  {
-    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-    memmove(resultptr, &result, sizeof(int32_t));
-    *(int32_t **)&jresult = resultptr;
-  }
+//  {
+//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+//    memmove(resultptr, &result, sizeof(int32_t));
+//    *(int32_t **)&jresult = resultptr;
+//  }
+  jresult = result;
   return jresult;
 }
 
@@ -237,11 +238,12 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
   (void)jcls;
   arg1 = *(void **)&jarg1; 
   result = Tachometer_Free(arg1);
-  {
-    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-    memmove(resultptr, &result, sizeof(int32_t));
-    *(int32_t **)&jresult = resultptr;
-  }
+//  {
+//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+//    memmove(resultptr, &result, sizeof(int32_t));
+//    *(int32_t **)&jresult = resultptr;
+//  }
+  jresult = result;
   return jresult;
 }
 
@@ -250,29 +252,26 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
   jlong jresult = 0 ;
   void *arg1 = (void *) 0 ;
   int32_t arg2 ;
-  int32_t *argp2 ;
+  int32_t argp2 ;
   int32_t result;
   
   (void)jenv;
   (void)jcls;
   arg1 = *(void **)&jarg1; 
-  argp2 = *(int32_t **)&jarg2; 
-  if (!argp2) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null int32_t");
-    return 0;
-  }
-  arg2 = *argp2; 
+  argp2 = *(int32_t *)&jarg2;
+  arg2 = argp2;
   result = Tachometer_Config(arg1,arg2);
-  {
-    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-    memmove(resultptr, &result, sizeof(int32_t));
-    *(int32_t **)&jresult = resultptr;
-  }
+//  {
+//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+//    memmove(resultptr, &result, sizeof(int32_t));
+//    *(int32_t **)&jresult = resultptr;
+//  }
+  jresult = result;
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(JNIEnv *jenv, jclass jcls, jlong audioArray, jshortArray jarg2, jlong jarg3) {
   jlong jresult = 0 ;
   void *arg1 = (void *) 0 ;
   int16_t *arg2 = (int16_t *) 0 ;
@@ -281,20 +280,22 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
   
   (void)jenv;
   (void)jcls;
+  jshort* jarg2 = (*jenv)->GetShortArrayElements(env, audioArray, 0);
   arg1 = *(void **)&jarg1; 
   arg2 = *(int16_t **)&jarg2; 
   arg3 = *(float **)&jarg3; 
   result = Tachometer_Process(arg1,arg2,arg3);
-  {
-    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-    memmove(resultptr, &result, sizeof(int32_t));
-    *(int32_t **)&jresult = resultptr;
-  }
+//  {
+//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+//    memmove(resultptr, &result, sizeof(int32_t));
+//    *(int32_t **)&jresult = resultptr;
+//  }
+  jresult = result;
   return jresult;
 }
 
 
-//#ifdef __cplusplus
-//}
-//#endif
+#ifdef __cplusplus
+}
+#endif
 
