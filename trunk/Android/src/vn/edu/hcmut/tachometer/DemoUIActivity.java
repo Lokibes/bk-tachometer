@@ -1,7 +1,7 @@
 package vn.edu.hcmut.tachometer;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,8 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import vn.edu.hcmut.tachometer.core.JavaTachometer;
-import vn.edu.hcmut.tachometer.core.SWIGTYPE_p_int32_t;
-import vn.edu.hcmut.tachometer.core.tachometer_process;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -23,7 +21,6 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +35,8 @@ import android.widget.Toast;
 
 public class DemoUIActivity extends Activity implements
 		OnSeekBarChangeListener, OnClickListener {
+	private String baseDir;
+	
 	private Toast notifier; // a pop-up for testing purpose
 	private SeekBar rpm; // seek bar for estimating RPM
 	private Button start; // start/stop measuring
@@ -46,13 +45,11 @@ public class DemoUIActivity extends Activity implements
 
 	private ChartView chartView;
 
-	private Random randommer; // randomly creates fake values for rpmCal.
-								// Testing purpose
+	// Testing purpose
 	private Timer timer;
 	private boolean isUpdateNeeded = true;
 
 	private AudioRecord recorder = null;
-	private FileWriter fw1, fw2;
 	int bufferSize = 0;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
 	// byte data[];
@@ -67,7 +64,9 @@ public class DemoUIActivity extends Activity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.relative);
-
+		
+		baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+		
 		jTach = new JavaTachometer();
 		jTach.jTachConfig((long) 2000);
 
@@ -88,7 +87,7 @@ public class DemoUIActivity extends Activity implements
 		rpm.setOnSeekBarChangeListener(this);
 		rpm.setMax(1000);
 
-		randommer = new Random();
+		new Random();
 		isUpdateNeeded = false;
 	}
 
@@ -194,19 +193,6 @@ public class DemoUIActivity extends Activity implements
 
 			isRecording = true;
 
-			try {
-				// Second parameter "true" for appending mode
-				fw1 = new FileWriter(new File("/sdcard/50802566/java_in.txt"),
-						true);
-				fw2 = new FileWriter(new File("/sdcard/50802566/java_out.txt"),
-						true);
-				if (!new File("/sdcard/50802566").exists()) {
-					new File("/sdcard/50802566").mkdirs();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
 			// Starting the Timer
 			timer = new Timer();
 			timer.schedule(new UpdateTimeTask(), 0, 20);
@@ -219,6 +205,19 @@ public class DemoUIActivity extends Activity implements
 			// Testing stuffs
 			// notifier.setText("Starting...");
 			// notifier.show();
+			
+			if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
+				File path = new File(baseDir + File.separator + "50802566");
+				if (!path.exists())	{	path.mkdirs();	}
+				
+				File clear = new File(path.getAbsolutePath() + File.separator + "latest_sample.raw");
+				if (clear.exists())	{
+					if (clear.delete())	{
+						android.util.Log.e("W-RAW", "Cleaned old sample");
+					}
+				}
+			}
+			
 		} else {
 			isRecording = false;
 			recorder.stop();
@@ -246,7 +245,6 @@ public class DemoUIActivity extends Activity implements
 				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss").format(new Date());
 				
 				SharedPreferences global = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
-				String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
 				File path = new File(baseDir + File.separator + "50802566/profiles");
 				if (!path.exists())	{	path.mkdirs();	}
 			    File[] list_file = path.listFiles();
@@ -328,7 +326,6 @@ public class DemoUIActivity extends Activity implements
 						 * rpmCal.setText(stringFromJNI() +
 						 * String.valueOf(data[0]) + " RPM"); }
 						 */
-						
 
 						if (null != data && testCount != 100)	{
 							currentValue = (int) jTach.jTachProcess(data);
@@ -350,28 +347,50 @@ public class DemoUIActivity extends Activity implements
 
 			// TODO Check if it work well and not miss any audio-data.
 			if (isRecording) {
-				/*
-				 * if(AudioRecord.ERROR_INVALID_OPERATION != read && null !=
-				 * data) { byte[] byte_reverse = processedByteArray(data, 1,
-				 * data.length); try { char[] num = new char[data.length];
-				 * char[] num_reverse = new char[byte_reverse.length];
-				 * 
-				 * for (int i = 0; i < data.length; i ++) { num[i] =
-				 * (char)data[i]; num_reverse[i] = (char)byte_reverse[i]; }
-				 * 
-				 * fw1.write(num); fw2.write(num_reverse);
-				 * 
-				 * fw1.close(); fw2.close(); } catch (IOException e) {
-				 * e.printStackTrace(); }
-				 * 
-				 * Log.e("RECORD", "Flushed " + read + " bytes to C"); }
-				 * 
-				 * else { Log.e("RECORD", "ERROR_INVALID_OPERATION"); }
-				 */
-
 				data = new short[bufferSize];
 				read = recorder.read(data, 0, bufferSize);
-
+				
+				/** Debugging purpose */
+				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
+					byte[] num = new byte[data.length];
+					for (int i = 0; i < num.length; i ++)	{
+						num[i] = (byte) data[i];
+					}
+					
+					File path = new File(baseDir + File.separator + "50802566");
+					if (!path.exists())	{	path.mkdirs();	}
+					
+					try {
+						File create = new File(path.getAbsolutePath() + File.separator + "latest_sample.raw");
+						FileOutputStream fos = new FileOutputStream(create.getAbsolutePath(), true);
+						fos.write(num);
+						fos.close();
+						
+						android.util.Log.e("W-RAW", "Created new sample ^^");
+					} catch (IOException e) {
+						android.util.Log.e("W-RAW", e.toString());
+					}
+					
+					/*
+					 * if(AudioRecord.ERROR_INVALID_OPERATION != read && null !=
+					 * data) { byte[] byte_reverse = processedByteArray(data, 1,
+					 * data.length); try { char[] num = new char[data.length];
+					 * char[] num_reverse = new char[byte_reverse.length];
+					 * 
+					 * for (int i = 0; i < data.length; i ++) { num[i] =
+					 * (char)data[i]; num_reverse[i] = (char)byte_reverse[i]; }
+					 * 
+					 * fw1.write(num); fw2.write(num_reverse);
+					 * 
+					 * fw1.close(); fw2.close(); } catch (IOException e) {
+					 * e.printStackTrace(); }
+					 * 
+					 * Log.e("RECORD", "Flushed " + read + " bytes to C"); }
+					 * 
+					 * else { Log.e("RECORD", "ERROR_INVALID_OPERATION"); }
+					 */
+				}
+				
 				/** Visualize the sound wave */
 				int width = 1000, height = 500;
 				int StartX = 0;
@@ -386,7 +405,7 @@ public class DemoUIActivity extends Activity implements
 				while (StartX < width) {
 					int mapX = StartX * (int) (bufferSize / width);
 					if (null != data) {
-						int StartY = data[mapX] / 20;
+						int StartY = data[mapX] / 40;
 						chartView.drawLine(StartX, StartY);
 
 						// Log.e("data filled", Integer.toString(data.length) +
@@ -402,7 +421,7 @@ public class DemoUIActivity extends Activity implements
 					}
 				}
 
-				Log.e("RECORD", "Read " + read
+				android.util.Log.e("RECORD", "Read " + read
 						+ " bytes from the device recorder");
 			}
 		}
