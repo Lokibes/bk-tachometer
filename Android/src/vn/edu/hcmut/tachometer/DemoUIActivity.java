@@ -60,6 +60,7 @@ public class DemoUIActivity extends Activity implements
 	private boolean isRecording = false;
 
 	private JavaTachometer jTach;
+	private int testCount = 0;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -300,6 +301,8 @@ public class DemoUIActivity extends Activity implements
 				recorder = null;
 			}
 
+
+			jTach.jTachFree();
 			this.finish();
 
 			return true;
@@ -314,17 +317,33 @@ public class DemoUIActivity extends Activity implements
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					int currentValue = randommer.nextInt(20) - 10
-							+ rpm.getProgress();
-
+					//int currentValue = randommer.nextInt(20) - 10 + rpm.getProgress();
+					int currentValue = 0;
+					
 					if (isUpdateNeeded) {
-						rpmCal.setText(currentValue + " RPM");
+						//rpmCal.setText(currentValue + " RPM");
 						/*
 						 * rpmCal.setText(stringFromJNI() + currentValue +
 						 * " RPM"); if (null != data) {
 						 * rpmCal.setText(stringFromJNI() +
 						 * String.valueOf(data[0]) + " RPM"); }
 						 */
+						
+
+						if (null != data && testCount != 100)	{
+							currentValue = (int) jTach.jTachProcess(data);
+							testCount ++;
+						}
+						
+						else if (testCount == 1)	{
+							android.util.Log.e("J-PROCESS", "Testcount = " + testCount);
+						}
+						
+						else {
+							android.util.Log.e("J-PROCESS", "Data null");
+						}
+						
+						rpmCal.setText(currentValue + " RPM");
 					}
 				}
 			});
