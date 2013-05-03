@@ -26,8 +26,13 @@ public class tachometer_process {
     return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Config(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int32_t.getCPtr(estimatedFreq)), true);
   }
 
-  public static SWIGTYPE_p_int32_t Tachometer_Process(SWIGTYPE_p_void tacho, SWIGTYPE_p_int16_t inAudio, SWIGTYPE_p_float resultFreq) {
-    return new SWIGTYPE_p_int32_t(tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int16_t.getCPtr(inAudio), SWIGTYPE_p_float.getCPtr(resultFreq)), true);
+  public static float Tachometer_Process(SWIGTYPE_p_void tacho, SWIGTYPE_p_int16_t inAudio) {
+    return tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void.getCPtr(tacho), SWIGTYPE_p_int16_t.getCPtr(inAudio));
+  }
+
+  public static SWIGTYPE_p_float Tachometer_FFT_Out(SWIGTYPE_p_void tacho) {
+    long cPtr = tachometer_processJNI.Tachometer_FFT_Out(SWIGTYPE_p_void.getCPtr(tacho));
+    return (cPtr == 0) ? null : new SWIGTYPE_p_float(cPtr, false);
   }
 
 }

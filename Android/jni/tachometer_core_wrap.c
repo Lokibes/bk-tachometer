@@ -118,11 +118,9 @@
 # define _SCL_SECURE_NO_DEPRECATE
 #endif
 
-
-
 /* Fix for jlong on some versions of gcc on Windows */
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-  typedef long long __int64;
+typedef long long __int64;
 #endif
 
 /* Fix for jlong on 64-bit x86 Solaris */
@@ -136,162 +134,172 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* Support for throwing Java exceptions */
 typedef enum {
-  SWIG_JavaOutOfMemoryError = 1, 
-  SWIG_JavaIOException, 
-  SWIG_JavaRuntimeException, 
-  SWIG_JavaIndexOutOfBoundsException,
-  SWIG_JavaArithmeticException,
-  SWIG_JavaIllegalArgumentException,
-  SWIG_JavaNullPointerException,
-  SWIG_JavaDirectorPureVirtual,
-  SWIG_JavaUnknownError
+	SWIG_JavaOutOfMemoryError = 1,
+	SWIG_JavaIOException,
+	SWIG_JavaRuntimeException,
+	SWIG_JavaIndexOutOfBoundsException,
+	SWIG_JavaArithmeticException,
+	SWIG_JavaIllegalArgumentException,
+	SWIG_JavaNullPointerException,
+	SWIG_JavaDirectorPureVirtual,
+	SWIG_JavaUnknownError
 } SWIG_JavaExceptionCodes;
 
 typedef struct {
-  SWIG_JavaExceptionCodes code;
-  const char *java_exception;
+	SWIG_JavaExceptionCodes code;
+	const char *java_exception;
 } SWIG_JavaExceptions_t;
 
+static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv,
+		SWIG_JavaExceptionCodes code, const char *msg) {
+	jclass excep;
+	static const SWIG_JavaExceptions_t java_exceptions[] = { {
+			SWIG_JavaOutOfMemoryError, "java/lang/OutOfMemoryError" }, {
+			SWIG_JavaIOException, "java/io/IOException" }, {
+			SWIG_JavaRuntimeException, "java/lang/RuntimeException" }, {
+			SWIG_JavaIndexOutOfBoundsException,
+			"java/lang/IndexOutOfBoundsException" }, {
+			SWIG_JavaArithmeticException, "java/lang/ArithmeticException" }, {
+			SWIG_JavaIllegalArgumentException,
+			"java/lang/IllegalArgumentException" }, {
+			SWIG_JavaNullPointerException, "java/lang/NullPointerException" }, {
+			SWIG_JavaDirectorPureVirtual, "java/lang/RuntimeException" }, {
+			SWIG_JavaUnknownError, "java/lang/UnknownError" }, {
+			(SWIG_JavaExceptionCodes) 0, "java/lang/UnknownError" } };
+	const SWIG_JavaExceptions_t *except_ptr = java_exceptions;
 
-static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
-  jclass excep;
-  static const SWIG_JavaExceptions_t java_exceptions[] = {
-    { SWIG_JavaOutOfMemoryError, "java/lang/OutOfMemoryError" },
-    { SWIG_JavaIOException, "java/io/IOException" },
-    { SWIG_JavaRuntimeException, "java/lang/RuntimeException" },
-    { SWIG_JavaIndexOutOfBoundsException, "java/lang/IndexOutOfBoundsException" },
-    { SWIG_JavaArithmeticException, "java/lang/ArithmeticException" },
-    { SWIG_JavaIllegalArgumentException, "java/lang/IllegalArgumentException" },
-    { SWIG_JavaNullPointerException, "java/lang/NullPointerException" },
-    { SWIG_JavaDirectorPureVirtual, "java/lang/RuntimeException" },
-    { SWIG_JavaUnknownError,  "java/lang/UnknownError" },
-    { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" }
-  };
-  const SWIG_JavaExceptions_t *except_ptr = java_exceptions;
+	while (except_ptr->code != code && except_ptr->code)
+		except_ptr++;
 
-  while (except_ptr->code != code && except_ptr->code)
-    except_ptr++;
-
-  (*jenv)->ExceptionClear(jenv);
-  excep = (*jenv)->FindClass(jenv, except_ptr->java_exception);
-  if (excep)
-    (*jenv)->ThrowNew(jenv, excep, msg);
+	(*jenv)->ExceptionClear(jenv);
+	excep = (*jenv)->FindClass(jenv, except_ptr->java_exception);
+	if (excep)
+		(*jenv)->ThrowNew(jenv, excep, msg);
 }
-
 
 /* Contract support */
 
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
-
 
 extern void* Tachometer_Create();
 extern int32_t Tachometer_Init(void* tacho);
 extern int32_t Tachometer_Free(void* tacho);
 extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
 extern int32_t Tachometer_Process(void* tacho, int16_t* inAudio);
-
+extern int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq,
+		int32_t endFreq, int32_t size, float* fft_out_magnitude);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Create(JNIEnv *jenv, jclass jcls) {
-  jlong jresult = 0 ;
-  void *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  result = (void *)Tachometer_Create();
-  *(void **)&jresult = result; 
-  return jresult;
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Create(
+		JNIEnv *jenv, jclass jcls) {
+	jlong jresult = 0;
+	void *result = 0;
+
+	(void) jenv;
+	(void) jcls;
+	result = (void *) Tachometer_Create();
+	*(void **) &jresult = result;
+	return jresult;
 }
 
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Init(
+		JNIEnv *jenv, jclass jcls, jlong jarg1) {
+	jlong jresult = 0;
+	void *arg1 = (void *) 0;
+	int32_t result;
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Init(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  jlong jresult = 0 ;
-  void *arg1 = (void *) 0 ;
-  int32_t result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = *(void **)&jarg1; 
-  result = Tachometer_Init(arg1);
-//  {
-//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-//    memmove(resultptr, &result, sizeof(int32_t));
-//    *(int32_t **)&jresult = resultptr;
-//  }
-  jresult = result;
-  return jresult;
+	(void) jenv;
+	(void) jcls;
+	arg1 = *(void **) &jarg1;
+	result = Tachometer_Init(arg1);
+	jresult = result;
+	return jresult;
 }
 
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Free(
+		JNIEnv *jenv, jclass jcls, jlong jarg1) {
+	jlong jresult = 0;
+	void *arg1 = (void *) 0;
+	int32_t result;
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  jlong jresult = 0 ;
-  void *arg1 = (void *) 0 ;
-  int32_t result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = *(void **)&jarg1; 
-  result = Tachometer_Free(arg1);
-//  {
-//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-//    memmove(resultptr, &result, sizeof(int32_t));
-//    *(int32_t **)&jresult = resultptr;
-//  }
-  jresult = result;
-  return jresult;
+	(void) jenv;
+	(void) jcls;
+	arg1 = *(void **) &jarg1;
+	result = Tachometer_Free(arg1);
+	jresult = result;
+	return jresult;
 }
 
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Config(
+		JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+	jlong jresult = 0;
+	void *arg1 = (void *) 0;
+	int32_t arg2;
+	int32_t argp2;
+	int32_t result;
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Config(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
-  jlong jresult = 0 ;
-  void *arg1 = (void *) 0 ;
-  int32_t arg2 ;
-  int32_t argp2 ;
-  int32_t result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = *(void **)&jarg1; 
-  argp2 = *(int32_t *)&jarg2;
-  arg2 = argp2;
-  result = Tachometer_Config(arg1,arg2);
-//  {
-//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-//    memmove(resultptr, &result, sizeof(int32_t));
-//    *(int32_t **)&jresult = resultptr;
-//  }
-  jresult = result;
-  return jresult;
+	(void) jenv;
+	(void) jcls;
+	arg1 = *(void **) &jarg1;
+	argp2 = *(int32_t *) &jarg2;
+	arg2 = argp2;
+	result = Tachometer_Config(arg1, arg2);
+	jresult = result;
+	return jresult;
 }
 
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(
+		JNIEnv *jenv, jclass jcls, jlong jarg1, jshortArray audioArray) {
+	jfloat jresult = 0.0f;
+	void *arg1 = (void *) 0;
+	int16_t *arg2 = (int16_t *) 0;
+	float result;
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(JNIEnv *jenv, jclass jcls, jlong jarg1, jshortArray audioArray) {
-  jfloat jresult = 0.0f ;
-  void *arg1 = (void *) 0 ;
-  int16_t *arg2 = (int16_t *) 0 ;
-  float result;
-  
-  (void)jenv;
-  (void)jcls;
-  jshort* jarg2 = (*jenv)->GetShortArrayElements(jenv, audioArray, 0);
-  arg1 = *(void **)&jarg1; 
-  arg2 = *(int16_t **)&jarg2;
-  result = Tachometer_Process(arg1,arg2);
-//  {
-//    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
-//    memmove(resultptr, &result, sizeof(int32_t));
-//    *(int32_t **)&jresult = resultptr;
-//  }
-  jresult = result;
-  return jresult;
+	(void) jenv;
+	(void) jcls;
+	jshort* jarg2 = (*jenv)->GetShortArrayElements(jenv, audioArray, 0);
+	arg1 = *(void **) &jarg1;
+	arg2 = *(int16_t **) &jarg2;
+	result = Tachometer_Process(arg1, arg2);
+	(*jenv)->ReleaseShortArrayElements(jenv, audioArray, jarg2, 0);
+	jresult = result;
+	return jresult;
 }
 
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1FFT_1Out(
+		JNIEnv *jenv, jclass jcls, jlong jtacho, jint jbeginFreq, jint jendFreq,
+		jint jsize, jfloatArray jfft_out_magnitude) {
+	jlong jresult = 0;
+	void *tacho = (void *) 0;
+	int32_t beginFreq = (int32_t) jbeginFreq;
+	int32_t endFreq = (int32_t) jendFreq;
+	int32_t size = (int32_t) size;
+	float *fft_out_magnitude;
+	int32_t result;
+
+	(void) jenv;
+	(void) jcls;
+	tacho = *(void **) &jtacho;
+
+	jfloat* jtmp_fft_out_magnitude = (*jenv)->GetFloatArrayElements(jenv,
+			jfft_out_magnitude, 0);
+
+	fft_out_magnitude = *(float**) &jtmp_fft_out_magnitude;
+	result = Tachometer_FFT_Out(tacho, beginFreq, endFreq, size,
+			fft_out_magnitude);
+
+	// TODO: try to optimize here to avoid high memory allocation and releasing
+	(*jenv)->ReleaseFloatArrayElements(jenv, jfft_out_magnitude,
+			jtmp_fft_out_magnitude, 0); // Copy back and release the memory
+
+	jresult = result;
+	return jresult;
+}
 
 #ifdef __cplusplus
 }

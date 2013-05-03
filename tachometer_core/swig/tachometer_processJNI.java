@@ -13,5 +13,6 @@ public class tachometer_processJNI {
   public final static native long Tachometer_Init(long jarg1);
   public final static native long Tachometer_Free(long jarg1);
   public final static native long Tachometer_Config(long jarg1, long jarg2);
-  public final static native long Tachometer_Process(long jarg1, long jarg2, long jarg3);
+  public final static native float Tachometer_Process(long jarg1, long jarg2);
+  public final static native long Tachometer_FFT_Out(long jarg1);
 }

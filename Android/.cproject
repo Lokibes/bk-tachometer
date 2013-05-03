@@ -6,13 +6,6 @@
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -29,7 +22,19 @@
 						</toolChain>
 					</folderInfo>
 					<folderInfo id="com.android.toolchain.gcc.681671738.384102082" name="/" resourcePath="jni">
-						<toolChain id="com.android.toolchain.gcc.1562042096.1610987755" name="com.android.toolchain.gcc" unusedChildren=""/>
+						<toolChain id="com.arm.toolchain.baremetal.1579055016" name="ARM Compiler" superClass="com.arm.toolchain.baremetal">
+							<tool id="com.arm.tool.c.compiler.385078432" name="ARM C Compiler" superClass="com.arm.tool.c.compiler"/>
+							<tool id="com.arm.tool.cpp.compiler.367576317" name="ARM C++ Compiler" superClass="com.arm.tool.cpp.compiler">
+								<option id="com.arm.tool.c.compiler.option.incpath.1101235498" superClass="com.arm.tool.c.compiler.option.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm/usr/include"/>
+								</option>
+								<inputType id="com.arm.tool.c.compiler.input.1262475658" superClass="com.arm.tool.c.compiler.input"/>
+								<inputType id="com.arm.tool.cpp.compiler.input.1207293705" superClass="com.arm.tool.cpp.compiler.input"/>
+							</tool>
+							<tool id="com.arm.tool.assembler.943520158" name="ARM Assembler" superClass="com.arm.tool.assembler"/>
+							<tool id="com.arm.tool.c.linker.367084218" name="ARM Linker" superClass="com.arm.tool.c.linker"/>
+							<tool id="com.arm.tool.librarian.1888329048" name="ARM Librarian" superClass="com.arm.tool.librarian"/>
+						</toolChain>
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
@@ -42,17 +47,23 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="DemoUIActivity.null.67216639" name="DemoUIActivity"/>
 	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/DemoUIActivity"/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.1649006682;com.android.gcc.compiler.622972203;com.android.gcc.inputType.1131497036">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.android.AndroidPerProjectProfile"/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.367576317;com.arm.tool.cpp.compiler.input.1207293705">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.arm.eclipse.builder.armcc.ARMCompilerDiscoveryProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.367576317;com.arm.tool.c.compiler.input.1262475658">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.arm.eclipse.builder.armcc.ARMCompilerDiscoveryProfile"/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.1873977545;com.android.toolchain.gcc.1873977545.634661750;com.android.gcc.compiler.345541724;com.android.gcc.inputType.283744640">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.android.AndroidPerProjectProfile"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/DemoUIActivity"/>
-	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

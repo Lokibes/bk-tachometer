@@ -70,11 +70,10 @@ int main(void)
 	Tachometer_Config(tacho_inst, (estimatedFreq << 1));	// Fix the autocorrelation frequency doubling problem
 
 	int32_t i;
-	float resultFreq = 0.0f;
 	for (i = 0; i < LOOP_NUM; i++) {
-		int32_t ret = Tachometer_Process(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]), &resultFreq);
-		if (ret == 1) {
-			printf("Loop %d: Result frequency: %f\n", i + 1,  resultFreq);
+		float ret = Tachometer_Process(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]));
+		if (ret > 0.0f) {
+			printf("Loop %d: Result frequency: %f\n", i + 1,  ret);
 		} else {
 			printf("Loop %d: Not found a good rotary frequency\n", i + 1);
 		}
