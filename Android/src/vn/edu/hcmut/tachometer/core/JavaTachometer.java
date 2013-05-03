@@ -29,8 +29,8 @@ public class JavaTachometer {
 	public float jTachProcess(short[] inAudio) {
 		// TODO use the core and user 's inputs to get estimated frequency
 		android.util.Log.e("J-TACH", "Before process");
-		float resultFreq = tachometer_process.Tachometer_Process(tacho_inst,
-				inAudio);
+		
+		float resultFreq = tachometer_process.Tachometer_Process(tacho_inst, inAudio);
 
 		// Freq not found
 		if (resultFreq == 0.0f) {
@@ -39,8 +39,7 @@ public class JavaTachometer {
 
 		// Found Freq
 		else if (resultFreq > 0.0f) {
-			android.util.Log.e("J-TACH", "Process done, result Freq = "
-					+ resultFreq);
+			android.util.Log.e("J-TACH", "Process done, result Freq = " + resultFreq);
 
 		}
 
@@ -49,7 +48,7 @@ public class JavaTachometer {
 			android.util.Log.e("J-TACH", "Process error!");
 		}
 
-		android.util.Log.e("J-TACH", "Processing done " + resultFreq);
+		android.util.Log.e("J-TACH", "Processing done without error");
 		return resultFreq;
 	}
 
