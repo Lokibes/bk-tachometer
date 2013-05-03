@@ -17,14 +17,22 @@ public class tachometer_processJNI {
 
 	public final static native long Tachometer_Config(long jarg1, long jarg2);
 
-	public final static native long Tachometer_Process(long jarg1, short[] audioArray);
+	public final static native long Tachometer_Process(long jarg1,
+			short[] audioArray);
+
+	public final static native long Tachometer_FFT_Out(long jarg1);
+
+	public final static native int Tachometer_FFT_Out(long tacho, int beginFreq,
+			int endFreq, int size, float[] fft_out_magnitude);
 
 	static {
 		try {
 			System.loadLibrary("tachometer_core");
-			//android.util.Log.e("tachometer_processJNI", "Loading the tachometer_core library successfully");
+			// android.util.Log.e("tachometer_processJNI",
+			// "Loading the tachometer_core library successfully");
 		} catch (UnsatisfiedLinkError e) {
-			//android.util.Log.e("tachometer_processJNI", "Cannot load the tachometer_core library");
+			// android.util.Log.e("tachometer_processJNI",
+			// "Cannot load the tachometer_core library");
 		}
 	}
 }

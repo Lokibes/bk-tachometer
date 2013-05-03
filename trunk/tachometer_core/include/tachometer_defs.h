@@ -8,6 +8,7 @@
 #ifndef TACHOMETER_DEFS_H_
 #define TACHOMETER_DEFS_H_
 
+#include <stdbool.h>
 #include "fftw3.h"
 #include "tachometer_history.h"
 
@@ -30,6 +31,14 @@ typedef struct {
 	float* fft_out_magnitude;
 	fftwf_plan plan_forward;
 	int32_t beginIndex; // The begin index to find the best frequency
+
+	// These are for FFT_Output interpolation
+	float* x;	// The x value of the fft_out_magnitude
+	float* newX;
+	int32_t currSize;
+	int32_t currBeginFreq;
+	int32_t currEndFreq;
+	bool newXInitialized;
 } Tacho_t;
 
 #endif /* TACHOMETER_DEFS_H_ */

@@ -21,7 +21,7 @@ int32_t Tachometer_MaxAbsolute16C(int16_t* vector);
 
 // Create
 //int32_t Tachometer_Create(void** tacho);
-void* Tachometer_Create();	// Hack code to run on Java
+void* Tachometer_Create(); // Hack code to run on Java
 
 // Initialize
 int32_t Tachometer_Init(void* tacho);
@@ -42,6 +42,23 @@ int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
  * 			? > 0.0f				Is a rotary frequency
  */
 float Tachometer_Process(void* tacho, int16_t* inAudio);
+
+/**
+ * Return the address of the FFT out magnitude array
+ * Pre:
+ * 	The fft_out_magnitude has been allocated
+ * Input:
+ * 		void*		tacho				The tachometer instance
+ * 		int32_t		beginFreq			The beginning frequency
+ * 		int32_t		endFreq				The ending frequency
+ * 		int32_t 	size				The size of the output array
+ * 	Output:
+ * 		float*		fft_out_magnitude		The result array
+ * 	Return:
+ * 		-1			Error
+ * 		0			Successful
+ */
+int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq, int32_t size, float* fft_out_magnitude);
 
 static __inline int16_t Tachometer_GetSizeInBits(uint32_t n) {
 	int32_t bits;
@@ -104,6 +121,39 @@ static __inline float Tachometer_MaxFrequency(float* vector, int32_t beginIndex)
 	}
 
 	return ((index + beginIndex) * INDEX_TO_FREQ);
+}
+
+// Interpolation: Mimic Matlab interp1 function
+// Return: float* newY
+// Pre:
+//		1. size is the size of x and y arrays. newSize is the size of newX.
+//		2. newX should be contained in x
+//		3. x is a uniform array --> Ex: 0, a, 2a, 3a, 4a, 5a, etc
+static __inline void Tachometer_Interpolation(float* x, float* y, int size,
+		float* newX, float* newY, int newSize) {
+	int i, j;
+	i = 0;
+	j = 0;
+	float tmpNewX, a, b;
+	float deltaX = x[1] - x[0];
+	float deltaXReverse = 1 / deltaX;
+	if (newX[0] == x[0]) {
+		newY[0] = y[0];
+		i = 1;
+		j = 1;
+	}
+
+	for (; j < newSize; j++) {
+		// Get the current newX
+		tmpNewX = newX[j];
+
+		while (x[i] < tmpNewX) {
+			i++;
+		}
+
+		a = x[i - 1];
+		newY[j] = y[i - 1] + (y[i] - y[i - 1]) * (x[i] - a) * deltaXReverse;
+	}
 }
 
 #endif /* TACHOMETER_LIBRARY_ */

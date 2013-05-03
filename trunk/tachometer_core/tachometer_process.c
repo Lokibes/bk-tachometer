@@ -11,6 +11,9 @@
 #include "fftw3.h"
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
+
+#define DEBUG_MODE
 
 #define FREQ_TO_INDEX_COEF	(1 / (((float)(TACHO_SAMPLING_FREQ >> 1)) / ((float) TACHO_FFT_OUT_LENGTH)))
 
@@ -24,6 +27,7 @@ void* Tachometer_Create() {
 			sizeof(fftwf_complex) * TACHO_FFT_IN_LENGTH);
 	tacho_inst->fft_out_magnitude = (float*) malloc(
 			sizeof(float) * TACHO_FFT_IN_LENGTH);
+	tacho_inst->x = (float*) malloc(TACHO_FFT_OUT_LENGTH * sizeof(float));
 
 	return tacho_inst;
 }
@@ -50,6 +54,22 @@ int32_t Tachometer_Init(void* tacho) {
 	// FFT_MEASURE is preferred to FFTW_ESTIMATE
 	tacho_inst->plan_forward = fftwf_plan_dft_r2c_1d(TACHO_FFT_IN_LENGTH,
 			tacho_inst->fft_in, tacho_inst->fft_out, FFTW_ESTIMATE);
+
+	// Initialize the variables for FFT magnitude output
+	tacho_inst->newX = NULL;
+	tacho_inst->currSize = 0;
+	tacho_inst->currBeginFreq = 0;
+	tacho_inst->currEndFreq = 0;
+	tacho_inst->newXInitialized = false;
+
+	// Initialize the x array
+	float* x = tacho_inst->x;
+	x[0] = 0;
+	x[TACHO_FFT_OUT_LENGTH - 1] = TACHO_HALF_SAMPLING_FREQ;
+	float delta = ((float)TACHO_HALF_SAMPLING_FREQ) / (TACHO_FFT_OUT_LENGTH - 1);
+	for (i = 1; i < TACHO_FFT_OUT_LENGTH - 1; i ++) {
+		x[i] = i * delta;
+	}
 
 	return 0;
 }
@@ -150,7 +170,7 @@ float Tachometer_Process(void* tacho, int16_t* inAudio) {
 			if (tacho_history_inst->accept_times >= TACHO_HISTORY_CAPACITY) {
 				// TACHO_HISTORY_CAPACITY == 25: the frequency is stable for 1 second long
 				// This frequency is the rotary frequency
-				resultFreq = average / 2.0f;	// Divide by 2.0f to fix the autocorrelation frequency doubling problem
+				resultFreq = average / 2.0f; // Divide by 2.0f to fix the autocorrelation frequency doubling problem
 				return resultFreq;
 			}
 		} else {
@@ -168,5 +188,77 @@ float Tachometer_Process(void* tacho, int16_t* inAudio) {
 		return -1.0f;
 	}
 
-	return 0.0f;	// Means that has not found a rotary frequency
+	return 0.0f; // Means that has not found a rotary frequency
+}
+
+int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
+		int32_t size, float* fft_out_magnitude) {
+	Tacho_t* tacho_inst = (Tacho_t*) tacho;
+	if (tacho_inst == NULL) {
+		return -1;
+	}
+
+	if (tacho_inst->newXInitialized == true) {
+		if (tacho_inst->currBeginFreq == beginFreq
+				&& tacho_inst->currEndFreq == endFreq
+				&& tacho_inst->currSize == size) {
+			// Should not reconstruct
+			// Interpolate
+			Tachometer_Interpolation(tacho_inst->x,
+					tacho_inst->fft_out_magnitude, TACHO_FFT_OUT_LENGTH,
+					tacho_inst->newX, fft_out_magnitude, size);
+
+		} else { // Should reconstruct
+			// Reconstruct the newX array
+			if (tacho_inst->currSize < size) {
+				// Should reallocate the array
+				tacho_inst->newX = realloc(tacho_inst->newX,
+						size * sizeof(float));
+			}
+			float* newX = tacho_inst->newX;
+			newX[0] = (float) beginFreq;
+			newX[size - 1] = (float) endFreq;
+			float delta = (newX[size - 1] - newX[0]) / (size - 1);
+
+			int i;
+			for (i = 1; i < size - 1; i++) {
+				// Construct the newX array
+				newX[i] = newX[0] + i * delta;
+			}
+
+			// Interpolate
+			Tachometer_Interpolation(tacho_inst->x,
+					tacho_inst->fft_out_magnitude, TACHO_FFT_OUT_LENGTH,
+					tacho_inst->newX, fft_out_magnitude, size);
+
+			tacho_inst->currBeginFreq = beginFreq;
+			tacho_inst->currEndFreq = endFreq;
+			tacho_inst->currSize = size;
+
+		} // End if (tacho_inst->currBeginFreq == beginFreq && ...)
+	} else { // tacho_inst has not been initialized the first time
+		tacho_inst->currBeginFreq = beginFreq;
+		tacho_inst->currEndFreq = endFreq;
+		tacho_inst->currSize = size;
+
+		tacho_inst->newX = (float*) malloc(size * sizeof(float));
+		float* newX = tacho_inst->newX;
+		newX[0] = (float) beginFreq;
+		newX[size - 1] = (float) endFreq;
+		float delta = (newX[size - 1] - newX[0]) / (size - 1);
+		int i;
+		for (i = 1; i < size - 1; i++) {
+			// Construct the newX array
+			newX[i] = newX[0] + i * delta;
+		}
+
+		// Interpolate
+		Tachometer_Interpolation(tacho_inst->x, tacho_inst->fft_out_magnitude,
+				TACHO_FFT_OUT_LENGTH, tacho_inst->newX, fft_out_magnitude,
+				size);
+
+		tacho_inst->newXInitialized = true;
+	} // End if (tacho_inst->newXInitialized == true)
+
+	return 0;
 }
