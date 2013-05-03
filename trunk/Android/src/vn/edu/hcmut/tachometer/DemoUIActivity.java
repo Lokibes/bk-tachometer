@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -60,7 +61,8 @@ public class DemoUIActivity extends Activity implements
 
 	private JavaTachometer jTach;
 	private int testCount = 0;
-	private byte[] num;
+	//private byte[] num;
+	private short[] num;
 	private byte[] fileData;
 	private int seekPos = 0;
 
@@ -96,17 +98,15 @@ public class DemoUIActivity extends Activity implements
 		isUpdateNeeded = false;
 		
 		File file = new File("rotation_16kHz.raw");
-		fileData = new byte[(int)file.length()];
-		FileInputStream fis;
+		InputStream fis;
 		try {
-			fis = new FileInputStream(file);
+			fis = getAssets().open("rotation_16kHz.raw");
+			fileData = new byte[fis.available()];
 			fis.read(fileData);
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (FileNotFoundException e) {
+			android.util.Log.e("FILE-MISSED", e.toString());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			android.util.Log.e("FILE-MISSED", e.toString());
 		}
 	}
 
@@ -225,7 +225,8 @@ public class DemoUIActivity extends Activity implements
 			// notifier.setText("Starting...");
 			// notifier.show();
 			
-			num = new byte[bufferSize];
+			//num = new byte[bufferSize + 1]; // It makes 4097 bytes as the core 's requirement
+			num = new short[bufferSize + 1];
 			
 			if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
 				File path = new File(baseDir + File.separator + "50802566");
@@ -348,8 +349,9 @@ public class DemoUIActivity extends Activity implements
 						 * String.valueOf(data[0]) + " RPM"); }
 						 */
 
-						if (null != data && testCount != 100)	{
-							currentValue = (int) jTach.jTachProcess(data);
+						if (null != data/* && testCount != 100*/)	{
+							//currentValue = (int) jTach.jTachProcess(data);
+							currentValue = (int) jTach.jTachProcess(num);
 							testCount ++;
 						}
 						
@@ -373,23 +375,25 @@ public class DemoUIActivity extends Activity implements
 				
 				/** Debugging purpose */
 				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
-					int i = seekPos;
+					int i = 0;
 					
-					while (i < seekPos + num.length)	{
-						if (i >= num.length)	{
-							seekPos = i - 1;
+					//android.util.Log.e("TEST-RAW", "numL = " + num.length + "; fileL = " + fileData.length);
+					
+					while (true)	{
+						if (i == num.length)	{
+							seekPos = (seekPos + i) % fileData.length + 1;
 							break;
 						}
 						
-						if (i >= fileData.length)	{
+						if (i == fileData.length - seekPos)	{
 							seekPos = 0;
-							i = 0;
 						}
 						
-						num[i - seekPos] = fileData[i];
+						//android.util.Log.e("TEST-RAW", "i = " + i + "; seekPos = " + seekPos);
+						
+						num[i] = fileData[i + seekPos];
 						
 						i ++;
-						
 					}
 					/*for (int i = 0; i < num.length; i ++)	{
 						num[i] = (byte) data[i];
@@ -401,7 +405,7 @@ public class DemoUIActivity extends Activity implements
 					try {
 						File create = new File(path.getAbsolutePath() + File.separator + "latest_sample.raw");
 						FileOutputStream fos = new FileOutputStream(create.getAbsolutePath(), true);
-						fos.write(num);
+						fos.write(fileData);
 						fos.close();
 						
 						android.util.Log.e("W-RAW", "Created new sample ^^");
@@ -447,7 +451,7 @@ public class DemoUIActivity extends Activity implements
 					/** Debugging purpose */
 					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
 						if (null != num) {
-							int StartY = num[mapX] / 40;
+							int StartY = num[mapX] / 2;
 							chartView.drawLine(StartX, StartY);
 
 							// Log.e("data filled", Integer.toString(data.length) +
