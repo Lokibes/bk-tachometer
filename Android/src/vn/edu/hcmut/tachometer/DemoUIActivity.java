@@ -1,6 +1,8 @@
 package vn.edu.hcmut.tachometer;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -58,6 +60,9 @@ public class DemoUIActivity extends Activity implements
 
 	private JavaTachometer jTach;
 	private int testCount = 0;
+	private byte[] num;
+	private byte[] fileData;
+	private int seekPos = 0;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -89,6 +94,20 @@ public class DemoUIActivity extends Activity implements
 
 		new Random();
 		isUpdateNeeded = false;
+		
+		File file = new File("rotation_16kHz.raw");
+		fileData = new byte[(int)file.length()];
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream(file);
+			fis.read(fileData);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/** call when come back from the settings screen. Refresh parameters */
@@ -205,6 +224,8 @@ public class DemoUIActivity extends Activity implements
 			// Testing stuffs
 			// notifier.setText("Starting...");
 			// notifier.show();
+			
+			num = new byte[bufferSize];
 			
 			if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
 				File path = new File(baseDir + File.separator + "50802566");
@@ -352,10 +373,27 @@ public class DemoUIActivity extends Activity implements
 				
 				/** Debugging purpose */
 				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
-					byte[] num = new byte[data.length];
-					for (int i = 0; i < num.length; i ++)	{
-						num[i] = (byte) data[i];
+					int i = seekPos;
+					
+					while (i < seekPos + num.length)	{
+						if (i >= num.length)	{
+							seekPos = i - 1;
+							break;
+						}
+						
+						if (i >= fileData.length)	{
+							seekPos = 0;
+							i = 0;
+						}
+						
+						num[i - seekPos] = fileData[i];
+						
+						i ++;
+						
 					}
+					/*for (int i = 0; i < num.length; i ++)	{
+						num[i] = (byte) data[i];
+					}*/
 					
 					File path = new File(baseDir + File.separator + "50802566");
 					if (!path.exists())	{	path.mkdirs();	}
@@ -402,14 +440,29 @@ public class DemoUIActivity extends Activity implements
 				 * 
 				 * The line is then drawer to the canvas with drawLine method
 				 */
+				
 				while (StartX < width) {
 					int mapX = StartX * (int) (bufferSize / width);
-					if (null != data) {
-						int StartY = data[mapX] / 40;
-						chartView.drawLine(StartX, StartY);
+					
+					/** Debugging purpose */
+					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
+						if (null != num) {
+							int StartY = num[mapX] / 40;
+							chartView.drawLine(StartX, StartY);
 
-						// Log.e("data filled", Integer.toString(data.length) +
-						// " x = " + StartX);
+							// Log.e("data filled", Integer.toString(data.length) +
+							// " x = " + StartX);
+						}
+					}
+					
+					else	{
+						if (null != data) {
+							int StartY = data[mapX] / 40;
+							chartView.drawLine(StartX, StartY);
+
+							// Log.e("data filled", Integer.toString(data.length) +
+							// " x = " + StartX);
+						}
 					}
 
 					StartX++;
