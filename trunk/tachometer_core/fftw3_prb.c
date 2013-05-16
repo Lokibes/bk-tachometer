@@ -71,7 +71,8 @@ int main(void)
 
 	int32_t i;
 	for (i = 0; i < LOOP_NUM; i++) {
-		float ret = Tachometer_Process(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]));
+		Tachometer_Push(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]), TACHO_FRAME_LENGTH);
+		float ret = Tachometer_Process(tacho_inst);
 		if (ret > 0.0f) {
 			printf("Loop %d: Result frequency: %f\n", i + 1,  ret);
 		} else {

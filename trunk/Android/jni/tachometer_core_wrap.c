@@ -10,6 +10,8 @@
 
 #define SWIGJAVA
 
+#define TACHO_FRAME_LENGTH			320
+
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -187,7 +189,10 @@ extern void* Tachometer_Create();
 extern int32_t Tachometer_Init(void* tacho);
 extern int32_t Tachometer_Free(void* tacho);
 extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
-extern int32_t Tachometer_Process(void* tacho, int16_t* inAudio);
+extern int32_t Tachometer_Get_Audio_Frame_Location(void* tacho,
+		int16_t** audioFrame);
+extern int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size);
+extern float Tachometer_Process(void* tacho);
 extern int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq,
 		int32_t endFreq, int32_t size, float* fft_out_magnitude);
 
@@ -222,7 +227,7 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
 }
 
 SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Free(
-		JNIEnv *jenv, jclass jcls, jlong jarg1) {
+		JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jbyteBuffer) {
 	jlong jresult = 0;
 	void *arg1 = (void *) 0;
 	int32_t result;
@@ -231,6 +236,7 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
 	(void) jcls;
 	arg1 = *(void **) &jarg1;
 	result = Tachometer_Free(arg1);
+//	(*jenv)->DeleteGlobalRef(jenv, jbyteBuffer);
 	jresult = result;
 	return jresult;
 }
@@ -253,22 +259,44 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
 	return jresult;
 }
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(
-		JNIEnv *jenv, jclass jcls, jlong jarg1, jshortArray audioArray) {
-	jfloat jresult = 0.0f;
-	void *arg1 = (void *) 0;
-	int16_t *arg2 = (int16_t *) 0;
-	float result;
-
+SWIGEXPORT jobject JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Get_1Audio_1Frame_1Location(
+		JNIEnv *jenv, jclass jcls, jlong jtacho) {
 	(void) jenv;
 	(void) jcls;
-	jshort* jarg2 = (*jenv)->GetShortArrayElements(jenv, audioArray, 0);
-	arg1 = *(void **) &jarg1;
-	arg2 = *(int16_t **) &jarg2;
-	result = Tachometer_Process(arg1, arg2);
-	(*jenv)->ReleaseShortArrayElements(jenv, audioArray, jarg2, 0);
-	jresult = result;
+	void *tacho = *(void **) &jtacho;
+	int16_t* audioFrame;
+	int32_t ret = Tachometer_Get_Audio_Frame_Location(tacho, &audioFrame);
+	if (ret != 0) {
+		return NULL;
+	} else {
+		jobject directBuffer = (*jenv)->NewDirectByteBuffer(jenv,
+				(void*) audioFrame, TACHO_FRAME_LENGTH << 1);
+		jobject globalRef = (*jenv)->NewGlobalRef(jenv, directBuffer);
+		return globalRef;
+	}
+}
+
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Push(
+		JNIEnv *jenv, jclass jcls, jlong jtacho, jobject jbyteBuffer,
+		jlong jsize) {
+	jlong jresult = 0;
+
+	void* inAudio = (*jenv)->GetDirectBufferAddress(jenv, jbyteBuffer);
+	int32_t size = *(int32_t*) &jsize;
+	void* tacho = *(void**) &jtacho;
+	int32_t ret = Tachometer_Push(tacho, (int16_t*) inAudio, (size >> 1));
+
+	jresult = (jlong) ret;
 	return jresult;
+}
+
+SWIGEXPORT jfloat JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Process(
+		JNIEnv *jenv, jclass jcls, jlong jtacho) {
+	(void) jenv;
+	(void) jcls;
+	int32_t* tacho = *(void **) &jtacho;
+	float result = Tachometer_Process(tacho);
+	return (jfloat) result;
 }
 
 SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1FFT_1Out(

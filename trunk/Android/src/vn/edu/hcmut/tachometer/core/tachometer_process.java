@@ -8,6 +8,8 @@
 
 package vn.edu.hcmut.tachometer.core;
 
+import java.nio.ByteBuffer;
+
 public class tachometer_process {
 	public static SWIGTYPE_p_void Tachometer_Create() {
 		long cPtr = tachometer_processJNI.Tachometer_Create();
@@ -19,9 +21,10 @@ public class tachometer_process {
 				.getCPtr(tacho));
 	}
 
-	public static long Tachometer_Free(SWIGTYPE_p_void tacho) {
-		return tachometer_processJNI.Tachometer_Free(SWIGTYPE_p_void
-				.getCPtr(tacho));
+	public static long Tachometer_Free(SWIGTYPE_p_void tacho,
+			ByteBuffer byteBuffer) {
+		return tachometer_processJNI.Tachometer_Free(
+				SWIGTYPE_p_void.getCPtr(tacho), byteBuffer);
 	}
 
 	public static long Tachometer_Config(SWIGTYPE_p_void tacho,
@@ -30,9 +33,29 @@ public class tachometer_process {
 				SWIGTYPE_p_void.getCPtr(tacho), estimatedFreq);
 	}
 
-	public static long Tachometer_Process(SWIGTYPE_p_void tacho, short[] inAudio) {
-		return tachometer_processJNI.Tachometer_Process(
-				SWIGTYPE_p_void.getCPtr(tacho), inAudio);
+	/**
+	 * Note: This function should only be called right after the tacho is
+	 * created.
+	 * 
+	 * @param tacho
+	 * @return The direct ByteBuffer pointing to the audio array
+	 */
+	public static ByteBuffer Tachometer_Get_Audio_Frame_Location(
+			SWIGTYPE_p_void tacho) {
+		return (ByteBuffer) tachometer_processJNI
+				.Tachometer_Get_Audio_Frame_Location(SWIGTYPE_p_void
+						.getCPtr(tacho));
+	}
+
+	public static long Tachometer_Push(SWIGTYPE_p_void tacho,
+			ByteBuffer byteBuffer, long size) {
+		return tachometer_processJNI.Tachometer_Push(
+				SWIGTYPE_p_void.getCPtr(tacho), byteBuffer, size);
+	}
+
+	public static float Tachometer_Process(SWIGTYPE_p_void tacho) {
+		return tachometer_processJNI.Tachometer_Process(SWIGTYPE_p_void
+				.getCPtr(tacho));
 	}
 
 	public static int Tachometer_FFT_Out(SWIGTYPE_p_void tacho, int beginFreq,

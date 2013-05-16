@@ -19,6 +19,7 @@ SRCS := fftw3_prb.c \
 		auto_correlation.c \
 		max_absolute_16_c.c \
 		tachometer_history.c \
+		tachometer_audio_buffer.c \
 		tachometer_process.c
 		
 OBJS := $(SRCS:.c=.o)

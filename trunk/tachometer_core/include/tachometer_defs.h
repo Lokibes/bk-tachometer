@@ -24,6 +24,21 @@
 #define TACHO_ZERO_PADDING_LENGTH			(TACHO_EXPECTED_LENGTH - TACHO_AUTO_CORRELATION_LENGTH)
 #define TACHO_ESTIMATION_HALF_RANGE			(TACHO_EXPECTED_LENGTH >> 4)
 #define TACHO_ESTIMATION_RANGE				(TACHO_EXPECTED_LENGTH >> 3)	// The range to find the best Frequency
+// The audio buffer size is in int16_t size
+#define TACHO_AUDIO_BUFFER_SIZE				(TACHO_FRAME_LENGTH * 250)		// This means that the audio buffer can store 5 second audio data
+typedef struct {
+	int16_t* audioFrame;
+	int16_t* buffer;
+	int32_t begin;
+	int32_t end;
+	int32_t capacity;
+	int32_t size;
+
+#ifdef BUFFER_DEBUG
+	FILE* audioFile;
+#endif
+} Tacho_Buffer_t;
+
 typedef struct {
 	Tacho_History_t* tacho_history_inst;
 	float* fft_in;
@@ -32,8 +47,11 @@ typedef struct {
 	fftwf_plan plan_forward;
 	int32_t beginIndex; // The begin index to find the best frequency
 
+	// The audio buffer for processing
+	Tacho_Buffer_t* audioBuffer;
+
 	// These are for FFT_Output interpolation
-	float* x;	// The x value of the fft_out_magnitude
+	float* x; // The x value of the fft_out_magnitude
 	float* newX;
 	int32_t currSize;
 	int32_t currBeginFreq;

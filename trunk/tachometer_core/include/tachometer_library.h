@@ -32,16 +32,25 @@ int32_t Tachometer_Free(void* tacho);
 // Configuration
 int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
 
-// Process
 /**
- * Output:
- * 			float* resultFreq		The result of frequency if found
+ * Get the audio frame location for Java to save the recorded audio
+ */
+int32_t Tachometer_Get_Audio_Frame_Location(void* tacho, int16_t** audioFrame);
+
+/**
+ * Push audio
+ */
+int32_t Tachometer_Push(void* tacho, int16_t* inAudio,
+		int32_t size);
+
+/**
  * Return:
  * 			-1.0f					Error
+ * 			-2.0f					Not enough data to process in the audio buffer
  * 			0.0f					Not a rotary frequency
  * 			? > 0.0f				Is a rotary frequency
  */
-float Tachometer_Process(void* tacho, int16_t* inAudio);
+float Tachometer_Process(void* tacho);
 
 /**
  * Return the address of the FFT out magnitude array

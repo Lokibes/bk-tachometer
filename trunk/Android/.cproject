@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="com.android.toolchain.gcc.681671738">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.android.toolchain.gcc.681671738" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.arm.eclipse.builder.armcc.error" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -20,7 +16,7 @@
 					<folderInfo id="com.android.toolchain.gcc.681671738.1649006682" name="/" resourcePath="">
 						<toolChain id="com.android.toolchain.gcc.1562042096" name="com.android.toolchain.gcc">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="com.android.targetPlatform.1366739252" isAbstract="false"/>
-							<builder arguments="V=1 -B" buildPath="${workspace_loc:/jni}" command="ndk-build.cmd" id="com.android.builder.74707506" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Android Builder">
+							<builder arguments="V=1 -B" buildPath="${workspace_loc:/jni}" command="ndk-build" id="com.android.builder.74707506" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Android Builder">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="obj"/>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="libs"/>
@@ -29,7 +25,19 @@
 						</toolChain>
 					</folderInfo>
 					<folderInfo id="com.android.toolchain.gcc.681671738.384102082" name="/" resourcePath="jni">
-						<toolChain id="com.arm.toolchain.baremetal.1579055016" name="ARM Compiler"/>
+						<toolChain id="com.arm.toolchain.baremetal.121901772" name="ARM Compiler" superClass="com.arm.toolchain.baremetal">
+							<tool id="com.arm.tool.c.compiler.1331991999" name="ARM C Compiler" superClass="com.arm.tool.c.compiler"/>
+							<tool id="com.arm.tool.cpp.compiler.1075086796" name="ARM C++ Compiler" superClass="com.arm.tool.cpp.compiler">
+								<option id="com.arm.tool.c.compiler.option.incpath.1436959645" superClass="com.arm.tool.c.compiler.option.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm/usr/include"/>
+								</option>
+								<inputType id="com.arm.tool.c.compiler.input.917598075" superClass="com.arm.tool.c.compiler.input"/>
+								<inputType id="com.arm.tool.cpp.compiler.input.1815795390" superClass="com.arm.tool.cpp.compiler.input"/>
+							</tool>
+							<tool id="com.arm.tool.assembler.1665633311" name="ARM Assembler" superClass="com.arm.tool.assembler"/>
+							<tool id="com.arm.tool.c.linker.6717270" name="ARM Linker" superClass="com.arm.tool.c.linker"/>
+							<tool id="com.arm.tool.librarian.979440247" name="ARM Librarian" superClass="com.arm.tool.librarian"/>
+						</toolChain>
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
@@ -52,6 +60,12 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.android.AndroidPerProjectProfile"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.367576317;com.arm.tool.cpp.compiler.input.1207293705">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.arm.eclipse.builder.armcc.ARMCompilerDiscoveryProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.1075086796;com.arm.tool.cpp.compiler.input.1815795390">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.arm.eclipse.builder.armcc.ARMCompilerDiscoveryProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.1075086796;com.arm.tool.c.compiler.input.917598075">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.arm.eclipse.builder.armcc.ARMCompilerDiscoveryProfile"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.681671738;com.android.toolchain.gcc.681671738.384102082;com.arm.tool.cpp.compiler.367576317;com.arm.tool.c.compiler.input.1262475658">

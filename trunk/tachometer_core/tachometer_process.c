@@ -8,6 +8,7 @@
 #include "tachometer_defs.h"
 #include "tachometer_library.h"
 #include "tachometer_history.h"
+#include "tachometer_audio_buffer.h"
 #include "fftw3.h"
 #include <stdlib.h>
 #include <math.h>
@@ -28,6 +29,8 @@ void* Tachometer_Create() {
 	tacho_inst->fft_out_magnitude = (float*) malloc(
 			sizeof(float) * TACHO_FFT_IN_LENGTH);
 	tacho_inst->x = (float*) malloc(TACHO_FFT_OUT_LENGTH * sizeof(float));
+
+	Tacho_Buffer_Create(&tacho_inst->audioBuffer);
 
 	return tacho_inst;
 }
@@ -66,10 +69,14 @@ int32_t Tachometer_Init(void* tacho) {
 	float* x = tacho_inst->x;
 	x[0] = 0;
 	x[TACHO_FFT_OUT_LENGTH - 1] = TACHO_HALF_SAMPLING_FREQ;
-	float delta = ((float)TACHO_HALF_SAMPLING_FREQ) / (TACHO_FFT_OUT_LENGTH - 1);
-	for (i = 1; i < TACHO_FFT_OUT_LENGTH - 1; i ++) {
+	float delta = ((float) TACHO_HALF_SAMPLING_FREQ)
+			/ (TACHO_FFT_OUT_LENGTH - 1);
+	for (i = 1; i < TACHO_FFT_OUT_LENGTH - 1; i++) {
 		x[i] = i * delta;
 	}
+
+	// Initialize the audio buffer
+	Tacho_Buffer_Init(tacho_inst->audioBuffer);
 
 	return 0;
 }
@@ -81,6 +88,7 @@ int32_t Tachometer_Free(void* tacho) {
 		return -1;
 	}
 	Tacho_History_Free(tacho_inst->tacho_history_inst);
+	Tacho_Buffer_Free(tacho_inst->audioBuffer);
 	fftwf_free(tacho_inst->fft_in);
 	fftwf_free(tacho_inst->fft_out);
 	fftwf_destroy_plan(tacho_inst->plan_forward);
@@ -111,13 +119,43 @@ int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 	return 0;
 }
 
+int32_t Tachometer_Get_Audio_Frame_Location(void* tacho, int16_t** audioFrame) {
+	Tacho_t* tacho_inst = (Tacho_t*) tacho;
+	if (tacho_inst == NULL) {
+		return -1;
+	}
+
+	*audioFrame = tacho_inst->audioBuffer->audioFrame;
+
+	return 0;
+}
+
+int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size) {
+	Tacho_t* tacho_inst = (Tacho_t*) tacho;
+	if (tacho_inst == NULL) {
+		return -1;
+	}
+
+	Tacho_Buffer_Push(tacho_inst->audioBuffer, inAudio, size);
+
+	return 0;
+}
+
 // Process:
-float Tachometer_Process(void* tacho, int16_t* inAudio) {
+float Tachometer_Process(void* tacho) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
 	float resultFreq = 0.0f;
 	if (tacho_inst == NULL) {
 		return -1.0f;
 	}
+
+	if (tacho_inst->audioBuffer->size < TACHO_FRAME_LENGTH) {
+		return -2.0f; // There is not enough data to process
+	}
+
+	// Set the inAudio to point to the audio location
+	int16_t* inAudio;
+	Tacho_Buffer_Pull(tacho_inst->audioBuffer, &inAudio);
 
 	/*
 	 * Step 1: Autocorrelation to suppress the noise
