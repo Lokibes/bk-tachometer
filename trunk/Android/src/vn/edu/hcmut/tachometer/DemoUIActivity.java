@@ -75,7 +75,7 @@ public class DemoUIActivity extends Activity implements
 		baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
 		
 		jTach = new JavaTachometer();
-		jTach.jTachConfig((long) 2000);
+		jTach.jTachConfig((long) 400);
 
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
