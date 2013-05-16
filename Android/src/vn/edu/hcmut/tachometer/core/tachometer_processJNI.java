@@ -13,12 +13,15 @@ public class tachometer_processJNI {
 
 	public final static native long Tachometer_Init(long jarg1);
 
-	public final static native long Tachometer_Free(long jarg1);
+	public final static native long Tachometer_Free(long jarg1, Object byteBuffer);
 
 	public final static native long Tachometer_Config(long jarg1, long jarg2);
 
-	public final static native long Tachometer_Process(long jarg1,
-			short[] audioArray);
+	public final static native Object Tachometer_Get_Audio_Frame_Location(long jtacho);
+	
+	public final static native long Tachometer_Push(long jtacho, Object byteBuffer, long size);
+	
+	public final static native float Tachometer_Process(long jtacho);
 
 	public final static native long Tachometer_FFT_Out(long jarg1);
 

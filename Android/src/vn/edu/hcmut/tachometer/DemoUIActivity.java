@@ -3,14 +3,15 @@ package vn.edu.hcmut.tachometer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import vn.edu.hcmut.tachometer.core.JavaTachometer;
 import android.app.Activity;
@@ -38,8 +39,36 @@ import android.widget.Toast;
 
 public class DemoUIActivity extends Activity implements
 		OnSeekBarChangeListener, OnClickListener {
+	/*
+	 * With 16kHz and 16 bit, mono
+	 */
+	private static final int AUDIO_SAMPLING_FREQUENCY = 16000;
+	private static final int AUDIO_BUFFER_SIZE_100MS = 3200; // In bytes
+	private static final int AUDIO_BUFFER_SIZE_20MS = 640; // In bytes
+
+	/*
+	 * Defines some necessary constants
+	 */
+	private static final int TIME_INTERVAL = 20; // The time in milliseconds
+	private static final int UI_UPDATE_INTERVAL = 500; // The time in
+														// milliseconds
+
+	// The timer counter to update UI
+	private int uiCounter = 0;
+
+	// The lock to make UI thread and audio recording thread working well
+	private final Lock lock = new ReentrantLock();
+
+	// The current RPM
+	private int currentRPM = 0;
+
+	/*
+	 * The audio buffer for reading the audio recorded from the microphone
+	 */
+	private ByteBuffer mAudioFrame = null;
+
 	private String baseDir;
-	
+
 	private Toast notifier; // a pop-up for testing purpose
 	private SeekBar rpm; // seek bar for estimating RPM
 	private Button start; // start/stop measuring
@@ -53,29 +82,36 @@ public class DemoUIActivity extends Activity implements
 	private boolean isUpdateNeeded = true;
 
 	private AudioRecord recorder = null;
-	int bufferSize = 0;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
-	// byte data[];
-	short data[];
 	private boolean isRecording = false;
 
 	private JavaTachometer jTach;
-	private int testCount = 0;
-	//private byte[] num;
-	private short[] num;
-	private byte[] fileData;
-	private int seekPos = 0;
+
+	// For debug purpose
+	private byte[] audioDataInBytes;
+	private int seekPos;
+	private int audioDataLengthInBytes;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.relative);
-		
+
 		baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
-		
+
 		jTach = new JavaTachometer();
-		jTach.jTachConfig((long) 400);
+
+		// Initialize the audio byte buffer for recording audio
+		mAudioFrame = jTach.jTachCreateAudioBuffer();
+
+		// Create the audio recorder
+		final int minBufferSize = AudioRecord.getMinBufferSize(16000,
+				AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+		final int bufferSize = Math.max(minBufferSize, AUDIO_BUFFER_SIZE_100MS) * 2;
+		recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+				AUDIO_SAMPLING_FREQUENCY, AudioFormat.CHANNEL_IN_MONO,
+				AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
@@ -96,27 +132,36 @@ public class DemoUIActivity extends Activity implements
 
 		new Random();
 		isUpdateNeeded = false;
-		
-		File file = new File("rotation_16kHz.raw");
-		InputStream fis;
-		try {
-			fis = getAssets().open("rotation_16kHz.raw");
-			fileData = new byte[fis.available()];
-			fis.read(fileData);
-		} catch (FileNotFoundException e) {
-			android.util.Log.e("FILE-MISSED", e.toString());
-		} catch (IOException e) {
-			android.util.Log.e("FILE-MISSED", e.toString());
-		}
+
+		if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode) {
+			String audioFilePath = new String(getString(R.string._mnt_sdcard_)
+					+ "rotation_16kHz.raw");
+			File audioFile = new File(audioFilePath);
+			audioDataLengthInBytes = (int) audioFile.length();
+			audioDataInBytes = new byte[audioDataLengthInBytes];
+			FileInputStream fis;
+			try {
+				fis = new FileInputStream(audioFile);
+				fis.read(audioDataInBytes);
+			} catch (FileNotFoundException e) {
+				android.util.Log.e("FILE-MISSED", e.toString());
+				;
+			} catch (IOException e) {
+				android.util.Log.e("FILE-MISSED", e.toString());
+			}
+			seekPos = 0;
+		} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)
 	}
 
 	/** call when come back from the settings screen. Refresh parameters */
 	protected void onStart() {
 		super.onStart();
 
-		SharedPreferences test_curname = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
-        android.util.Log.e("CURRENT PROF", test_curname.getString("current_name", "not found"));
-		
+		SharedPreferences test_curname = getApplicationContext()
+				.getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+		android.util.Log.e("CURRENT PROF",
+				test_curname.getString("current_name", "not found"));
+
 		/** Adapt the seek bar and stuffs to the pre-defined settings */
 		// TODO change to the global shared pref, for the sake of the whole app
 		SharedPreferences settings = PreferenceManager
@@ -200,53 +245,35 @@ public class DemoUIActivity extends Activity implements
 			isUpdateNeeded = true;
 
 			// Starting the Recorder
-			bufferSize = AudioRecord
-					.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_MONO,
-							AudioFormat.ENCODING_PCM_16BIT);
-			notifier.setText(String.valueOf(bufferSize));
+			// TODO: check wether we should show the notifier
+			notifier.setText(String.valueOf(AUDIO_BUFFER_SIZE_100MS));
 			notifier.show();
-			recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100,
-					AudioFormat.CHANNEL_IN_MONO,
-					AudioFormat.ENCODING_PCM_16BIT, bufferSize);
-			recorder.startRecording();
 
+			// Initialize the Tachometer
+			jTach.jTachInit();
+			jTach.jTachConfig(950);
+
+			recorder.startRecording();
 			isRecording = true;
 
-			// Starting the Timer
-			timer = new Timer();
-			timer.schedule(new UpdateTimeTask(), 0, 20);
+			// Reset the currentRPM
+			currentRPM = 0;
+			rpmCal.setText(currentRPM + " RPM");
+
+			// Reset the UI counter
+			uiCounter = 0;
 
 			// Some UI updating stuffs
 			rpm.setEnabled(false);
 			start.setText("STOP");
 			start.setTextColor(Color.RED);
 
-			// Testing stuffs
-			// notifier.setText("Starting...");
-			// notifier.show();
-			
-			//num = new byte[bufferSize + 1]; // It makes 4097 bytes as the core 's requirement
-			num = new short[bufferSize + 1];
-			
-			if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
-				File path = new File(baseDir + File.separator + "50802566");
-				if (!path.exists())	{	path.mkdirs();	}
-				
-				File clear = new File(path.getAbsolutePath() + File.separator + "latest_sample.raw");
-				if (clear.exists())	{
-					if (clear.delete())	{
-						android.util.Log.e("W-RAW", "Cleaned old sample");
-					}
-				}
-			}
-			
+			// Starting the Timer
+			timer = new Timer();
+			timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
 		} else {
 			isRecording = false;
 			recorder.stop();
-			// After releasing a "null"-set is a must
-			recorder.release();
-			recorder = null;
-			data = null;
 
 			isUpdateNeeded = false;
 			// It cancel only the SCHEDULED tasks, not the RUNNING ones!
@@ -264,30 +291,43 @@ public class DemoUIActivity extends Activity implements
 				// Filenames cannot contain "/"
 				LogWriter lw = new LogWriter();
 				String prof = "Unknown profile";
-				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss").format(new Date());
-				
-				SharedPreferences global = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
-				File path = new File(baseDir + File.separator + "50802566/profiles");
-				if (!path.exists())	{	path.mkdirs();	}
-			    File[] list_file = path.listFiles();
-				
-			    if (list_file.length != 0)	{
-			    	for (int i = 0; i < list_file.length; i ++)	{
-			    		if (list_file[i].getName().startsWith(global.getString("current_name", "not found")))	{
-			    			prof = list_file[i].getAbsolutePath();
-			    			break;
-			    		}
-			    		
-			    		else if (i == list_file.length)	{
-			    			prof = "Default " + global.getString("current_name", "not found");
-			    			android.util.Log.e("SAVING LOG", list_file[i].getName() + " is not started by " + global.getString("current_name", "not found"));
-			    			break;
-			    		}
-			    	}
-			    }
-			    
-			    lw.writeExternal(this, prof, fDate, rpmCal.getText().toString());
-			    
+				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss")
+						.format(new Date());
+
+				SharedPreferences global = getApplicationContext()
+						.getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+				File path = new File(baseDir + File.separator
+						+ "50802566/profiles");
+				if (!path.exists()) {
+					path.mkdirs();
+				}
+				File[] list_file = path.listFiles();
+
+				if (list_file.length != 0) {
+					for (int i = 0; i < list_file.length; i++) {
+						if (list_file[i].getName().startsWith(
+								global.getString("current_name", "not found"))) {
+							prof = list_file[i].getAbsolutePath();
+							break;
+						}
+
+						else if (i == list_file.length) {
+							prof = "Default "
+									+ global.getString("current_name",
+											"not found");
+							android.util.Log.e(
+									"SAVING LOG",
+									list_file[i].getName()
+											+ " is not started by "
+											+ global.getString("current_name",
+													"not found"));
+							break;
+						}
+					}
+				}
+
+				lw.writeExternal(this, prof, fDate, rpmCal.getText().toString());
+
 				notifier.setText("Saved " + rpmCal.getText().toString());
 				notifier.show();
 			}
@@ -321,8 +361,7 @@ public class DemoUIActivity extends Activity implements
 				recorder = null;
 			}
 
-
-			jTach.jTachFree();
+			jTach.jTachFree(mAudioFrame);
 			this.finish();
 
 			return true;
@@ -333,109 +372,63 @@ public class DemoUIActivity extends Activity implements
 
 	class UpdateTimeTask extends TimerTask {
 		public void run() {
+			android.os.Process
+					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+
 			/** Testing real-time run */
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					//int currentValue = randommer.nextInt(20) - 10 + rpm.getProgress();
-					int currentValue = 0;
-					
 					if (isUpdateNeeded) {
-						//rpmCal.setText(currentValue + " RPM");
-						/*
-						 * rpmCal.setText(stringFromJNI() + currentValue +
-						 * " RPM"); if (null != data) {
-						 * rpmCal.setText(stringFromJNI() +
-						 * String.valueOf(data[0]) + " RPM"); }
-						 */
-
-						if (null != data/* && testCount != 100*/)	{
-							//currentValue = (int) jTach.jTachProcess(data);
-							currentValue = (int) jTach.jTachProcess(num);
-							testCount ++;
+						uiCounter += TIME_INTERVAL;
+						if (uiCounter > UI_UPDATE_INTERVAL) {
+							uiCounter = 0;
+							lock.lock();
+							try {
+								rpmCal.setText(currentRPM + " RPM");
+							} finally {
+								lock.unlock();
+							}
 						}
-						
-						else if (testCount == 1)	{
-							android.util.Log.e("J-PROCESS", "Testcount = " + testCount);
-						}
-						
-						else {
-							android.util.Log.e("J-PROCESS", "Data null");
-						}
-						
-						rpmCal.setText(currentValue + " RPM");
 					}
 				}
 			});
 
-			// TODO Check if it work well and not miss any audio-data.
 			if (isRecording) {
-				data = new short[bufferSize];
-				read = recorder.read(data, 0, bufferSize);
-				
-				/** Debugging purpose */
-				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
-					int i = 0;
-					
-					//android.util.Log.e("TEST-RAW", "numL = " + num.length + "; fileL = " + fileData.length);
-					
-					while (true)	{
-						if (i == num.length)	{
-							seekPos = (seekPos + i) % fileData.length + 1;
-							break;
-						}
-						
-						if (i == fileData.length - seekPos)	{
-							seekPos = 0;
-						}
-						
-						//android.util.Log.e("TEST-RAW", "i = " + i + "; seekPos = " + seekPos);
-						
-						num[i] = fileData[i + seekPos];
-						
-						i ++;
-					}
-					/*for (int i = 0; i < num.length; i ++)	{
-						num[i] = (byte) data[i];
-					}*/
-					
-					File path = new File(baseDir + File.separator + "50802566");
-					if (!path.exists())	{	path.mkdirs();	}
-					
+				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
+					int nRead = recorder.read(mAudioFrame,
+							AUDIO_BUFFER_SIZE_20MS);
+					jTach.jTachPush(mAudioFrame, nRead);
+					int processResult = (int) jTach.jTachProcess();
+					lock.lock();
 					try {
-						File create = new File(path.getAbsolutePath() + File.separator + "latest_sample.raw");
-						FileOutputStream fos = new FileOutputStream(create.getAbsolutePath(), true);
-						fos.write(fileData);
-						fos.close();
-						
-						android.util.Log.e("W-RAW", "Created new sample ^^");
-					} catch (IOException e) {
-						android.util.Log.e("W-RAW", e.toString());
+						currentRPM = processResult;
+					} finally {
+						lock.unlock();
 					}
-					
-					/*
-					 * if(AudioRecord.ERROR_INVALID_OPERATION != read && null !=
-					 * data) { byte[] byte_reverse = processedByteArray(data, 1,
-					 * data.length); try { char[] num = new char[data.length];
-					 * char[] num_reverse = new char[byte_reverse.length];
-					 * 
-					 * for (int i = 0; i < data.length; i ++) { num[i] =
-					 * (char)data[i]; num_reverse[i] = (char)byte_reverse[i]; }
-					 * 
-					 * fw1.write(num); fw2.write(num_reverse);
-					 * 
-					 * fw1.close(); fw2.close(); } catch (IOException e) {
-					 * e.printStackTrace(); }
-					 * 
-					 * Log.e("RECORD", "Flushed " + read + " bytes to C"); }
-					 * 
-					 * else { Log.e("RECORD", "ERROR_INVALID_OPERATION"); }
-					 */
-				}
-				
+				} else { // For debug mode
+					mAudioFrame.position(0);
+					mAudioFrame.put(audioDataInBytes, seekPos,
+							AUDIO_BUFFER_SIZE_20MS);
+					seekPos += AUDIO_BUFFER_SIZE_20MS;
+					if (seekPos >= audioDataLengthInBytes
+							- AUDIO_BUFFER_SIZE_20MS) {
+						seekPos = 0;
+					}
+					jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE_20MS);
+					int processResult = (int) jTach.jTachProcess();
+					lock.lock();
+					try {
+						currentRPM = processResult;
+					} finally {
+						lock.unlock();
+					}
+				} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode ==
+					// false)
+
 				/** Visualize the sound wave */
-				int width = 1000, height = 500;
-				int StartX = 0;
+				// int width = 1000, height = 500;
+				// int StartX = 0;
 
 				/**
 				 * Here is where the real calculations is taken in to action In
@@ -444,54 +437,46 @@ public class DemoUIActivity extends Activity implements
 				 * 
 				 * The line is then drawer to the canvas with drawLine method
 				 */
-				
-				while (StartX < width) {
-					int mapX = StartX * (int) (bufferSize / width);
-					
-					/** Debugging purpose */
-					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)	{
-						if (null != num) {
-							int StartY = num[mapX] / 2;
-							chartView.drawLine(StartX, StartY);
 
-							// Log.e("data filled", Integer.toString(data.length) +
-							// " x = " + StartX);
-						}
-					}
-					
-					else	{
-						if (null != data) {
-							int StartY = data[mapX] / 40;
-							chartView.drawLine(StartX, StartY);
+				// TODO: dismiss this
+				// while (StartX < width) {
+				// int mapX = StartX * (int) (bufferSize / width);
+				//
+				// /** Debugging purpose */
+				// if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode) {
+				// if (null != num) {
+				// int StartY = num[mapX] / 2;
+				// chartView.drawLine(StartX, StartY);
+				//
+				// // Log.e("data filled",
+				// // Integer.toString(data.length) +
+				// // " x = " + StartX);
+				// }
+				// }
+				//
+				// else {
+				// if (null != data) {
+				// int StartY = data[mapX] / 40;
+				// chartView.drawLine(StartX, StartY);
+				//
+				// // Log.e("data filled",
+				// // Integer.toString(data.length) +
+				// // " x = " + StartX);
+				// }
+				// }
+				//
+				// StartX++;
+				//
+				// if (StartX == width) {
+				// chartView.requestRender();
+				// StartX = 0;
+				// return;
+				// }
+				// }
 
-							// Log.e("data filled", Integer.toString(data.length) +
-							// " x = " + StartX);
-						}
-					}
-
-					StartX++;
-
-					if (StartX == width) {
-						chartView.requestRender();
-						StartX = 0;
-						return;
-					}
-				}
-
-				android.util.Log.e("RECORD", "Read " + read
-						+ " bytes from the device recorder");
-			}
+				// android.util.Log.e("RECORD", "Read " + read
+				// + " bytes from the device recorder");
+			} // End if (isRecording)
 		}
 	}
-
-	/** JNI methods */
-	// Return the maximum absolute 16 bit value in an array
-	/*
-	 * private native int Tachometer_MaxAbsolute16C(short[] vector);
-	 * 
-	 * static { try { //System.loadLibrary("hello-jni");
-	 * System.loadLibrary("tachometer_core"); }
-	 * 
-	 * catch (UnsatisfiedLinkError e) { Log.e("ULE", e.getMessage()); } }
-	 */
 }

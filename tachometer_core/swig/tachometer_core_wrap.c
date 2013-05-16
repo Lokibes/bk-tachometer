@@ -191,6 +191,8 @@ extern void* Tachometer_Create();
 extern int32_t Tachometer_Init(void* tacho);
 extern int32_t Tachometer_Free(void* tacho);
 extern int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq);
+extern int32_t Tachometer_Get_Audio_Frame_Location(void* tacho, int16_t** audioFrame);
+extern int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size);
 extern float Tachometer_Process(void* tacho, int16_t* inAudio);
 extern float* Tachometer_FFT_Out(void* tacho);
 
@@ -264,6 +266,54 @@ SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJN
   }
   arg2 = *argp2; 
   result = Tachometer_Config(arg1,arg2);
+  {
+    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+    memmove(resultptr, &result, sizeof(int32_t));
+    *(int32_t **)&jresult = resultptr;
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Get_1Audio_1Frame_1Location(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+  jlong jresult = 0 ;
+  void *arg1 = (void *) 0 ;
+  int16_t **arg2 = (int16_t **) 0 ;
+  int32_t result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = *(int16_t ***)&jarg2; 
+  result = Tachometer_Get_Audio_Frame_Location(arg1,arg2);
+  {
+    int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
+    memmove(resultptr, &result, sizeof(int32_t));
+    *(int32_t **)&jresult = resultptr;
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1Push(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
+  jlong jresult = 0 ;
+  void *arg1 = (void *) 0 ;
+  int16_t *arg2 = (int16_t *) 0 ;
+  int32_t arg3 ;
+  int32_t *argp3 ;
+  int32_t result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = *(int16_t **)&jarg2; 
+  argp3 = *(int32_t **)&jarg3; 
+  if (!argp3) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null int32_t");
+    return 0;
+  }
+  arg3 = *argp3; 
+  result = Tachometer_Push(arg1,arg2,arg3);
   {
     int32_t * resultptr = (int32_t *) malloc(sizeof(int32_t));
     memmove(resultptr, &result, sizeof(int32_t));
