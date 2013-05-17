@@ -3,59 +3,70 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:padding="10dp" >
-    
-    <vn.edu.hcmut.tachometer.ChartView
-        android:id="@+id/chartView"
-        android:keepScreenOn="true"
+
+    <View
+        android:id="@+id/buttonTop"
+        android:layout_width="match_parent"
+        android:layout_height="9dp"
         
-        android:layout_above="@+id/rpmCal"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		
-		android:layout_alignParentTop="true" />
-    
-    <TextView
-        android:id="@+id/rpmCal"
-        android:text="@string/val_rpm"
-        android:textSize="40sp"
-        android:gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="6dp"
-        
-        android:layout_above="@+id/buttonStart"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/chartView" />
     
     <Button
         android:id="@+id/buttonStart"
-        android:text="@string/button_name"
-        android:layout_above="@+id/rpmLabel"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        
+        android:layout_below="@+id/buttonTop"
+        android:layout_marginLeft="-4dp"
+        android:text="@string/button_name" />
+    
+    <View
+        android:id="@+id/buttonBottom"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    
-    <TextView
-        android:id="@+id/rpmLabel"
-        android:text="@string/lab_rpm"
-        android:layout_above="@+id/seekBar"
+        android:layout_height="4dp"
+        
+        android:layout_below="@+id/buttonStart" />
+
+    <vn.edu.hcmut.tachometer.ChartView
+        android:id="@+id/chartView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true" />
+        android:layout_alignParentTop="true"
+        android:keepScreenOn="true" />
     
-    <TextView
-        android:id="@+id/rpmValue"
-        android:text="@string/val_rpm"
-        android:layout_above="@+id/seekBar"
+    <vn.edu.hcmut.tachometer.ChartView
+        android:id="@+id/seekView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true" />
+        android:layout_height="50dp"
+        
+        android:layout_below="@+id/buttonBottom"
+        android:layout_above="@+id/seekTop" />
     
+    <View
+        android:id="@+id/seekTop"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_above="@+id/seekBar" />
+
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true" />
-    
-	<!-- android:progressDrawable="@layout/progress_color" -->
-    
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <!-- android:progressDrawable="@layout/progress_color" -->
+
+
+    <TextView
+        android:id="@+id/rpmCal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonStart"
+        android:layout_alignRight="@+id/seekBar"
+        android:layout_alignTop="@+id/buttonStart"
+        android:gravity="center|right"
+        android:text="@string/val_rpm"
+        android:textSize="36sp" />
+
 </RelativeLayout>
