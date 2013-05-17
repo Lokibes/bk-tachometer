@@ -3,7 +3,7 @@
 
    	<string name="lab_rpm">Estimated head speed:</string>
    	<string name="val_rpm">0 RPM</string>
-    <string name="button_name">MEASURE HEAD SPEED</string>
+    <string name="button_name">MEASURE</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_addprofile">New profile</string>
     <string name="settings">Settings</string>

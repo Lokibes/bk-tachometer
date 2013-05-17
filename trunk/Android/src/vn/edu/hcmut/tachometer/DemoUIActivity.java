@@ -72,10 +72,10 @@ public class DemoUIActivity extends Activity implements
 	private Toast notifier; // a pop-up for testing purpose
 	private SeekBar rpm; // seek bar for estimating RPM
 	private Button start; // start/stop measuring
-	private TextView rpmValue; // notifier of the seek bar
 	private TextView rpmCal; // real-time calculated value of actual RPM
 
-	private ChartView chartView;
+	private ChartView chartView;	// For rendering the wave-form of temperature results
+	private ChartView seekView;	// For rendering the peak of highest-energy-level wave
 
 	// Testing purpose
 	private Timer timer;
@@ -115,11 +115,13 @@ public class DemoUIActivity extends Activity implements
 
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
+		
+		seekView = (ChartView) findViewById(R.id.seekView);
+		seekView.setClickable(false);
 
 		/** IMPORTANT! constructor of notifier. Don't miss! */
 		notifier = Toast.makeText(this, "", 5);
 
-		rpmValue = (TextView) findViewById(R.id.rpmValue);
 		rpmCal = (TextView) findViewById(R.id.rpmCal);
 		// rpmCal.setTextSize(rpmCal.getHeight());
 
@@ -232,10 +234,8 @@ public class DemoUIActivity extends Activity implements
 	}
 
 	public void onProgressChanged(SeekBar sb, int progress, boolean b) {
-		// notifier.setText(Integer.toString(sb.getProgress()) +
-		// " rounds per minute");
-		// notifier.show();
-		rpmValue.setText(Integer.toString(progress) + " RPM");
+		 notifier.setText("Estimated head speed: " + Integer.toString(sb.getProgress()) + " RPM");
+		 notifier.show();
 	}
 
 	/** implements OnClickListener */
@@ -337,7 +337,7 @@ public class DemoUIActivity extends Activity implements
 				notifier.show();
 			}
 
-			start.setText("MEASURE HEAD SPEED");
+			start.setText("MEASURE");
 			start.setTextColor(Color.BLACK);
 			// start.setBackgroundColor(Color.WHITE);
 			rpm.setEnabled(true);
