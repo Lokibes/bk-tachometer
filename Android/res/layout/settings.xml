@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content" >
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
 
     <PreferenceCategory android:title="Profiles" >
         <Preference
@@ -8,7 +9,7 @@
             android:key="profiles"
             android:summary="@string/profiles" />
             
-		<ListPreference
+		<!--ListPreference
 		    android:defaultValue="0"
 		    android:entries="@array/heli_type"
 		    android:entryValues="@array/heli_type_index"
@@ -23,7 +24,7 @@
 		    android:entryValues="@array/blade_index"
 		    android:key="blade"
 		    android:summary="2 Blades"
-		    android:title="Number of Blades" />
+		    android:title="Number of Blades" /-->
 		
     </PreferenceCategory>
     

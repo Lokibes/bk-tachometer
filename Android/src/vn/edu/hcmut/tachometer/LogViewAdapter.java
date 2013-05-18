@@ -74,7 +74,7 @@ class LogViewAdapter extends ArrayAdapter<Log>	{
 			logholder = (LogHolder)convertView.getTag();
 		}
 		
-		if (null != logList)	{
+		if (null != logList && !logList.isEmpty())	{
 			if (null == checkList.get(position))	{
 				android.util.Log.e("getView", "Checklist null at " + position);
 			}
@@ -85,7 +85,19 @@ class LogViewAdapter extends ArrayAdapter<Log>	{
 			
 			// DONE obtain the profile name, not the file path!
 			if (!logList.get(position).profile.equals("Unknown profile"))	{
-				logholder.profile_view.setText(logList.get(position).profile.substring(logList.get(position).profile.lastIndexOf("/") + 1, logList.get(position).profile.length() - "dd_MM_yyyy - HH_mm_ss.prof".length()));
+				try	{
+					if (logList.get(position).profile.contains(File.separator))	{
+						logholder.profile_view.setText(logList.get(position).profile.substring(logList.get(position).profile.lastIndexOf("/") + 1, logList.get(position).profile.length() - "dd_MM_yyyy - HH_mm_ss.prof".length()));
+					}
+					
+					else	{
+						logholder.profile_view.setText(logList.get(position).profile);
+					}
+				}	catch(StringIndexOutOfBoundsException e)	{
+					android.util.Log.e("StringIndexOutOfBoundsException", "Profile = " + logList.get(position).profile);
+					android.util.Log.e("StringIndexOutOfBoundsException", "Index start = " + logList.get(position).profile.lastIndexOf("/") + 1);
+					android.util.Log.e("StringIndexOutOfBoundsException", "Index end = " + (logList.get(position).profile.length() - "dd_MM_yyyy - HH_mm_ss.prof".length()));
+				}
 				logholder.avatar_view.setImageBitmap(BitmapUtil.decodeSampledBitmapFromResource(logList.get(position).profile.replace("profiles", "avatars").replace(".prof", ".png"), 55, 55));
 				android.util.Log.e("DECODING", logList.get(position).profile.replace("profiles", "avatars").replace(".prof", ".png"));
 			}

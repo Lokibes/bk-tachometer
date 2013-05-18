@@ -147,7 +147,6 @@ public class DemoUIActivity extends Activity implements
 				fis.read(audioDataInBytes);
 			} catch (FileNotFoundException e) {
 				android.util.Log.e("FILE-MISSED", e.toString());
-				;
 			} catch (IOException e) {
 				android.util.Log.e("FILE-MISSED", e.toString());
 			}
@@ -190,7 +189,7 @@ public class DemoUIActivity extends Activity implements
 		// notifier.show();
 	}
 
-	/** implements for the MENU soft-key. Android 2.3.x */
+	/* implements for the MENU soft-key. Android 2.3.x */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -290,7 +289,7 @@ public class DemoUIActivity extends Activity implements
 			if (auto_save) {
 				// Filenames cannot contain "/"
 				LogWriter lw = new LogWriter();
-				String prof = "Unknown profile";
+				String prof = "Microsized Helicopter";
 				String fDate = new SimpleDateFormat("dd_MM_yyyy - HH_mm_ss")
 						.format(new Date());
 
@@ -306,7 +305,7 @@ public class DemoUIActivity extends Activity implements
 				if (list_file.length != 0) {
 					for (int i = 0; i < list_file.length; i++) {
 						if (list_file[i].getName().startsWith(
-								global.getString("current_name", "not found"))) {
+								global.getString("current_name", "-not found-"))) {
 							prof = list_file[i].getAbsolutePath();
 							break;
 						}
@@ -314,13 +313,13 @@ public class DemoUIActivity extends Activity implements
 						else if (i == list_file.length) {
 							prof = "Default "
 									+ global.getString("current_name",
-											"not found");
+											"-not found-");
 							android.util.Log.e(
 									"SAVING LOG",
 									list_file[i].getName()
 											+ " is not started by "
 											+ global.getString("current_name",
-													"not found"));
+													"-not found-"));
 							break;
 						}
 					}
