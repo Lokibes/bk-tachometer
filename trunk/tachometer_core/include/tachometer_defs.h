@@ -16,7 +16,7 @@
 #define TACHO_HALF_SAMPLING_FREQ			(TACHO_SAMPLING_FREQ >> 1)
 #define TACHO_WORD16_MIN       				-32768
 #define TACHO_WORD16_MAX       				32767
-#define TACHO_FRAME_LENGTH					320		// 320 samples per frame (20 ms)
+#define TACHO_FRAME_LENGTH					640		// 640 samples per frame (20 ms)
 #define TACHO_AUTO_CORRELATION_LENGTH		((TACHO_FRAME_LENGTH << 1) - 1)
 #define TACHO_EXPECTED_LENGTH				(4096 << 1)
 #define TACHO_FFT_IN_LENGTH					TACHO_EXPECTED_LENGTH
@@ -25,7 +25,7 @@
 #define TACHO_ESTIMATION_HALF_RANGE			(TACHO_EXPECTED_LENGTH >> 4)
 #define TACHO_ESTIMATION_RANGE				(TACHO_EXPECTED_LENGTH >> 3)	// The range to find the best Frequency
 // The audio buffer size is in int16_t size
-#define TACHO_AUDIO_BUFFER_SIZE				(TACHO_FRAME_LENGTH * 250)		// This means that the audio buffer can store 5 second audio data
+#define TACHO_AUDIO_BUFFER_SIZE				(TACHO_FRAME_LENGTH * 100)		// This means that the audio buffer can store 100 audio frames
 typedef struct {
 	int16_t* audioFrame;
 	int16_t* buffer;

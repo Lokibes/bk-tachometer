@@ -39,19 +39,21 @@ import android.widget.Toast;
 
 public class DemoUIActivity extends Activity implements
 		OnSeekBarChangeListener, OnClickListener {
-	/*
-	 * With 16kHz and 16 bit, mono
-	 */
-	private static final int AUDIO_SAMPLING_FREQUENCY = 16000;
-	private static final int AUDIO_BUFFER_SIZE_100MS = 3200; // In bytes
-	private static final int AUDIO_BUFFER_SIZE_20MS = 640; // In bytes
 
 	/*
 	 * Defines some necessary constants
 	 */
-	private static final int TIME_INTERVAL = 20; // The time in milliseconds
+	private static final int TIME_INTERVAL = 40; // The time in milliseconds
 	private static final int UI_UPDATE_INTERVAL = 500; // The time in
 														// milliseconds
+
+	/*
+	 * With 16kHz and 16 bit, mono
+	 */
+	private static final int AUDIO_SAMPLING_FREQUENCY = 16000;
+	private static final int AUDIO_BUFFER_MAX_SIZE = 6400; // In bytes
+	private static final int AUDIO_BUFFER_SIZE = AUDIO_SAMPLING_FREQUENCY
+			/ 1000 * TIME_INTERVAL * 2; // In bytes
 
 	// The timer counter to update UI
 	private int uiCounter = 0;
@@ -61,6 +63,9 @@ public class DemoUIActivity extends Activity implements
 
 	// The current RPM
 	private int currentRPM = 0;
+
+	// The floating point array for drawing the spectrum
+	private float fftOutArray[] = null;
 
 	/*
 	 * The audio buffer for reading the audio recorded from the microphone
@@ -74,8 +79,10 @@ public class DemoUIActivity extends Activity implements
 	private Button start; // start/stop measuring
 	private TextView rpmCal; // real-time calculated value of actual RPM
 
-	private ChartView chartView;	// For rendering the wave-form of temperature results
-	private ChartView seekView;	// For rendering the peak of highest-energy-level wave
+	private ChartView chartView; // For rendering the wave-form of temperature
+									// results
+	private ChartView seekView; // For rendering the peak of
+								// highest-energy-level wave
 
 	// Testing purpose
 	private Timer timer;
@@ -108,14 +115,14 @@ public class DemoUIActivity extends Activity implements
 		// Create the audio recorder
 		final int minBufferSize = AudioRecord.getMinBufferSize(16000,
 				AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-		final int bufferSize = Math.max(minBufferSize, AUDIO_BUFFER_SIZE_100MS) * 2;
+		final int bufferSize = Math.max(minBufferSize, AUDIO_BUFFER_MAX_SIZE) * 2;
 		recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
 				AUDIO_SAMPLING_FREQUENCY, AudioFormat.CHANNEL_IN_MONO,
 				AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
-		
+
 		seekView = (ChartView) findViewById(R.id.seekView);
 		seekView.setClickable(false);
 
@@ -233,8 +240,9 @@ public class DemoUIActivity extends Activity implements
 	}
 
 	public void onProgressChanged(SeekBar sb, int progress, boolean b) {
-		 notifier.setText("Estimated head speed: " + Integer.toString(sb.getProgress()) + " RPM");
-		 notifier.show();
+		notifier.setText("Estimated head speed: "
+				+ Integer.toString(sb.getProgress()) + " RPM");
+		notifier.show();
 	}
 
 	/** implements OnClickListener */
@@ -245,12 +253,12 @@ public class DemoUIActivity extends Activity implements
 
 			// Starting the Recorder
 			// TODO: check wether we should show the notifier
-			notifier.setText(String.valueOf(AUDIO_BUFFER_SIZE_100MS));
+			notifier.setText(String.valueOf(AUDIO_BUFFER_MAX_SIZE));
 			notifier.show();
 
 			// Initialize the Tachometer
 			jTach.jTachInit();
-			jTach.jTachConfig(950);
+			jTach.jTachConfig(rpm.getProgress());
 
 			recorder.startRecording();
 			isRecording = true;
@@ -371,8 +379,8 @@ public class DemoUIActivity extends Activity implements
 
 	class UpdateTimeTask extends TimerTask {
 		public void run() {
-			android.os.Process
-					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+//			android.os.Process
+//					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 			/** Testing real-time run */
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
@@ -381,7 +389,7 @@ public class DemoUIActivity extends Activity implements
 					if (isUpdateNeeded) {
 						uiCounter += TIME_INTERVAL;
 						if (uiCounter > UI_UPDATE_INTERVAL) {
-							uiCounter = 0;
+							uiCounter = uiCounter % TIME_INTERVAL;
 							lock.lock();
 							try {
 								rpmCal.setText(currentRPM + " RPM");
@@ -395,8 +403,7 @@ public class DemoUIActivity extends Activity implements
 
 			if (isRecording) {
 				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
-					int nRead = recorder.read(mAudioFrame,
-							AUDIO_BUFFER_SIZE_20MS);
+					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 					jTach.jTachPush(mAudioFrame, nRead);
 					int processResult = (int) jTach.jTachProcess();
 					lock.lock();
@@ -408,13 +415,12 @@ public class DemoUIActivity extends Activity implements
 				} else { // For debug mode
 					mAudioFrame.position(0);
 					mAudioFrame.put(audioDataInBytes, seekPos,
-							AUDIO_BUFFER_SIZE_20MS);
-					seekPos += AUDIO_BUFFER_SIZE_20MS;
-					if (seekPos >= audioDataLengthInBytes
-							- AUDIO_BUFFER_SIZE_20MS) {
+							AUDIO_BUFFER_SIZE);
+					seekPos += AUDIO_BUFFER_SIZE;
+					if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
 						seekPos = 0;
 					}
-					jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE_20MS);
+					jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
 					int processResult = (int) jTach.jTachProcess();
 					lock.lock();
 					try {
@@ -425,19 +431,31 @@ public class DemoUIActivity extends Activity implements
 				} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode ==
 					// false)
 
-				/** Visualize the sound wave */
-				// int width = 1000, height = 500;
-				// int StartX = 0;
+				if (uiCounter % 200 == 0) {
+					int width = chartView.getWidth();
+					int height = chartView.getHeight();
 
-				/**
-				 * Here is where the real calculations is taken in to action In
-				 * this while loop, we calculate the start and stop points for
-				 * both X and Y
-				 * 
-				 * The line is then drawer to the canvas with drawLine method
-				 */
+					if (fftOutArray == null) {
+						// Create new array
+						fftOutArray = new float[width];
+					} else if (fftOutArray.length != width) {
+						// Initialize the array again
+						fftOutArray = new float[width];
+					}
 
-				// TODO: dismiss this
+					float maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width,
+							fftOutArray);
+
+					if (maxFFT >= 0) { // No error
+						// Draw the spectrum here
+						for (int x = 0; x < width; x++) {
+							chartView.drawLine(x, fftOutArray[x] / maxFFT * height
+									/ 2.0f);
+						}
+						chartView.requestRender();
+					}
+				}
+
 				// while (StartX < width) {
 				// int mapX = StartX * (int) (bufferSize / width);
 				//

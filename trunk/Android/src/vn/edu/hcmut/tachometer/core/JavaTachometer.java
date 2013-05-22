@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 public class JavaTachometer {
 	private SWIGTYPE_p_void tacho_inst;
-	private static int processCounter = 0;
 
 	public JavaTachometer() {
 		tacho_inst = tachometer_process.Tachometer_Create();
@@ -12,7 +11,6 @@ public class JavaTachometer {
 
 	public void jTachInit() {
 		long ret = tachometer_process.Tachometer_Init(tacho_inst);
-		processCounter = 0;
 		if (ret != -1) {
 			android.util.Log.e("J-TACH",
 					"Tachometer_Init succeeds with result: " + ret);
@@ -25,7 +23,7 @@ public class JavaTachometer {
 	public void jTachConfig(long estimatedFreq) {
 		long ret = tachometer_process.Tachometer_Config(tacho_inst,
 				estimatedFreq);
-		android.util.Log.e("J-TACH", "Config done with result: " + ret);
+		android.util.Log.e("J-TACH", "Config value " + estimatedFreq + " done with result: " + ret);
 	}
 
 	public float jTachProcess() {
@@ -33,7 +31,7 @@ public class JavaTachometer {
 
 		// Error
 		if (resultFreq < 0.0f) {
-			android.util.Log.e("J-TACH", "Process error!");
+			android.util.Log.e("J-TACH", "Process error! The error code is " + resultFreq);
 			return 0.0f;
 		}
 		return resultFreq;
@@ -66,6 +64,18 @@ public class JavaTachometer {
 			android.util.Log.e("J-TACH", "Pushing audio to buffer error");
 		}
 	}
-	
-	
+
+	public float jTachFFTOut(int beginFrequency, int endFrequency, int size,
+			float[] fftOutArray) {
+		float ret = tachometer_process.Tachometer_FFT_Out(tacho_inst,
+				beginFrequency, endFrequency, size, fftOutArray);
+
+		if (ret < 0.0f) { // Error
+			android.util.Log.e("J-TACH", "jTachFFTOut error, return value is "
+					+ ret);
+		}
+
+		return ret;
+	}
+
 }
