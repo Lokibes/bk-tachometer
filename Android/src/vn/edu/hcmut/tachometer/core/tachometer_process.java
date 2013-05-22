@@ -58,7 +58,7 @@ public class tachometer_process {
 				.getCPtr(tacho));
 	}
 
-	public static int Tachometer_FFT_Out(SWIGTYPE_p_void tacho, int beginFreq,
+	public static float Tachometer_FFT_Out(SWIGTYPE_p_void tacho, int beginFreq,
 			int endFreq, int size, float[] fft_out_magnitude) {
 		return tachometer_processJNI.Tachometer_FFT_Out(
 				SWIGTYPE_p_void.getCPtr(tacho), beginFreq, endFreq, size,

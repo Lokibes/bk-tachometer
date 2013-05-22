@@ -102,7 +102,7 @@ int32_t Tachometer_Free(void* tacho) {
 int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
 	int32_t estimatedIndex = (int32_t) (((float) estimatedFreq)
-			* FREQ_TO_INDEX_COEF);
+			* FREQ_TO_INDEX_COEF * 2.0f); // * 2.0f because of the auto correlation algorithm
 
 	// Imply that vector is not NULL
 	int32_t beginIndex = estimatedIndex - TACHO_ESTIMATION_HALF_RANGE + 1;
@@ -229,13 +229,14 @@ float Tachometer_Process(void* tacho) {
 	return 0.0f; // Means that has not found a rotary frequency
 }
 
-int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
+float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
 		int32_t size, float* fft_out_magnitude) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
 	if (tacho_inst == NULL) {
-		return -1;
+		return -1.0f;
 	}
 
+	float maxNum = 0.0f;
 	if (tacho_inst->newXInitialized == true) {
 		if (tacho_inst->currBeginFreq == beginFreq
 				&& tacho_inst->currEndFreq == endFreq
@@ -244,7 +245,7 @@ int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
 			// Interpolate
 			Tachometer_Interpolation(tacho_inst->x,
 					tacho_inst->fft_out_magnitude, TACHO_FFT_OUT_LENGTH,
-					tacho_inst->newX, fft_out_magnitude, size);
+					tacho_inst->newX, fft_out_magnitude, size, &maxNum);
 
 		} else { // Should reconstruct
 			// Reconstruct the newX array
@@ -267,7 +268,7 @@ int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
 			// Interpolate
 			Tachometer_Interpolation(tacho_inst->x,
 					tacho_inst->fft_out_magnitude, TACHO_FFT_OUT_LENGTH,
-					tacho_inst->newX, fft_out_magnitude, size);
+					tacho_inst->newX, fft_out_magnitude, size, &maxNum);
 
 			tacho_inst->currBeginFreq = beginFreq;
 			tacho_inst->currEndFreq = endFreq;
@@ -291,12 +292,13 @@ int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
 		}
 
 		// Interpolate
+
 		Tachometer_Interpolation(tacho_inst->x, tacho_inst->fft_out_magnitude,
-				TACHO_FFT_OUT_LENGTH, tacho_inst->newX, fft_out_magnitude,
-				size);
+				TACHO_FFT_OUT_LENGTH, tacho_inst->newX, fft_out_magnitude, size,
+				&maxNum);
 
 		tacho_inst->newXInitialized = true;
 	} // End if (tacho_inst->newXInitialized == true)
 
-	return 0;
+	return maxNum;
 }

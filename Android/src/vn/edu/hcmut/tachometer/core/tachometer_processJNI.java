@@ -23,9 +23,7 @@ public class tachometer_processJNI {
 	
 	public final static native float Tachometer_Process(long jtacho);
 
-	public final static native long Tachometer_FFT_Out(long jarg1);
-
-	public final static native int Tachometer_FFT_Out(long tacho, int beginFreq,
+	public final static native float Tachometer_FFT_Out(long tacho, int beginFreq,
 			int endFreq, int size, float[] fft_out_magnitude);
 
 	static {

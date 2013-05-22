@@ -64,10 +64,10 @@ float Tachometer_Process(void* tacho);
  * 	Output:
  * 		float*		fft_out_magnitude		The result array
  * 	Return:
- * 		-1			Error
- * 		0			Successful
+ * 		-1.0f			Error
+ * 		? >= 0.0f		The maximum fft value
  */
-int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq, int32_t size, float* fft_out_magnitude);
+float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq, int32_t size, float* fft_out_magnitude);
 
 static __inline int16_t Tachometer_GetSizeInBits(uint32_t n) {
 	int32_t bits;
@@ -138,8 +138,9 @@ static __inline float Tachometer_MaxFrequency(float* vector, int32_t beginIndex)
 //		1. size is the size of x and y arrays. newSize is the size of newX.
 //		2. newX should be contained in x
 //		3. x is a uniform array --> Ex: 0, a, 2a, 3a, 4a, 5a, etc
+// float* maxNum is the maximum value in the newY array
 static __inline void Tachometer_Interpolation(float* x, float* y, int size,
-		float* newX, float* newY, int newSize) {
+		float* newX, float* newY, int newSize, float* maxNum) {
 	int i, j;
 	i = 0;
 	j = 0;
@@ -152,6 +153,7 @@ static __inline void Tachometer_Interpolation(float* x, float* y, int size,
 		j = 1;
 	}
 
+	float maxNumber = 0.0f;
 	for (; j < newSize; j++) {
 		// Get the current newX
 		tmpNewX = newX[j];
@@ -162,7 +164,11 @@ static __inline void Tachometer_Interpolation(float* x, float* y, int size,
 
 		a = x[i - 1];
 		newY[j] = y[i - 1] + (y[i] - y[i - 1]) * (x[i] - a) * deltaXReverse;
+		if (maxNumber < newY[j]) {
+			maxNumber = newY[j];
+		}
 	}
+	*maxNum = maxNumber;
 }
 
 #endif /* TACHOMETER_LIBRARY_ */

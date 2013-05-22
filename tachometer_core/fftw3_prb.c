@@ -61,13 +61,13 @@ int main(void)
 	 */
 	FILE* audioFile = fopen("./rotation_16kHz.raw", "rb");
 
-	int32_t estimatedFreq = 452;
+	int32_t estimatedFreq = 400;
 	int16_t* inAudio = malloc(TACHO_FRAME_LENGTH * LOOP_NUM * sizeof(int16_t));
 	fread(inAudio, sizeof(int16_t), TACHO_FRAME_LENGTH * LOOP_NUM, audioFile);
 
 	void* tacho_inst = Tachometer_Create();
 	Tachometer_Init(tacho_inst);
-	Tachometer_Config(tacho_inst, (estimatedFreq << 1));	// Fix the autocorrelation frequency doubling problem
+	Tachometer_Config(tacho_inst, estimatedFreq);	// Fix the autocorrelation frequency doubling problem
 
 	int32_t i;
 	for (i = 0; i < LOOP_NUM; i++) {

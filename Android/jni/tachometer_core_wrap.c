@@ -10,7 +10,7 @@
 
 #define SWIGJAVA
 
-#define TACHO_FRAME_LENGTH			320
+#define TACHO_FRAME_LENGTH			640
 
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
@@ -193,7 +193,7 @@ extern int32_t Tachometer_Get_Audio_Frame_Location(void* tacho,
 		int16_t** audioFrame);
 extern int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size);
 extern float Tachometer_Process(void* tacho);
-extern int32_t Tachometer_FFT_Out(void* tacho, int32_t beginFreq,
+extern float Tachometer_FFT_Out(void* tacho, int32_t beginFreq,
 		int32_t endFreq, int32_t size, float* fft_out_magnitude);
 
 #ifdef __cplusplus
@@ -299,34 +299,26 @@ SWIGEXPORT jfloat JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJ
 	return (jfloat) result;
 }
 
-SWIGEXPORT jlong JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1FFT_1Out(
+SWIGEXPORT jfloat JNICALL Java_vn_edu_hcmut_tachometer_core_tachometer_1processJNI_Tachometer_1FFT_1Out(
 		JNIEnv *jenv, jclass jcls, jlong jtacho, jint jbeginFreq, jint jendFreq,
 		jint jsize, jfloatArray jfft_out_magnitude) {
-	jlong jresult = 0;
-	void *tacho = (void *) 0;
-	int32_t beginFreq = (int32_t) jbeginFreq;
-	int32_t endFreq = (int32_t) jendFreq;
-	int32_t size = (int32_t) size;
-	float *fft_out_magnitude;
-	int32_t result;
-
 	(void) jenv;
 	(void) jcls;
-	tacho = *(void **) &jtacho;
-
+	int32_t beginFreq = (int32_t) jbeginFreq;
+	int32_t endFreq = (int32_t) jendFreq;
+	int32_t size = (int32_t) jsize;
+	void *tacho = *(void **) &jtacho;
 	jfloat* jtmp_fft_out_magnitude = (*jenv)->GetFloatArrayElements(jenv,
 			jfft_out_magnitude, 0);
 
-	fft_out_magnitude = *(float**) &jtmp_fft_out_magnitude;
-	result = Tachometer_FFT_Out(tacho, beginFreq, endFreq, size,
+	float* fft_out_magnitude = *(float**) &jtmp_fft_out_magnitude;
+	float result = Tachometer_FFT_Out(tacho, beginFreq, endFreq, size,
 			fft_out_magnitude);
 
-	// TODO: try to optimize here to avoid high memory allocation and releasing
 	(*jenv)->ReleaseFloatArrayElements(jenv, jfft_out_magnitude,
 			jtmp_fft_out_magnitude, 0); // Copy back and release the memory
 
-	jresult = result;
-	return jresult;
+	return (jfloat)result;
 }
 
 #ifdef __cplusplus
