@@ -81,12 +81,14 @@ public class DemoUIActivity extends Activity implements
 
 	private ChartView chartView; // For rendering the wave-form of temperature
 									// results
-	private ChartView seekView; // For rendering the peak of
+	private SeekView seekView; // For rendering the peak of
 								// highest-energy-level wave
 
 	// Testing purpose
 	private Timer timer;
 	private boolean isUpdateNeeded = true;
+	private boolean isMeasuring = false;
+	private boolean isSeeking = true;
 
 	private AudioRecord recorder = null;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
@@ -123,21 +125,20 @@ public class DemoUIActivity extends Activity implements
 		chartView = (ChartView) findViewById(R.id.chartView);
 		chartView.setClickable(false);
 
-		seekView = (ChartView) findViewById(R.id.seekView);
+		seekView = (SeekView) findViewById(R.id.seekView);
 		seekView.setClickable(false);
 
 		/** IMPORTANT! constructor of notifier. Don't miss! */
 		notifier = Toast.makeText(this, "", 5);
 
 		rpmCal = (TextView) findViewById(R.id.rpmCal);
-		// rpmCal.setTextSize(rpmCal.getHeight());
 
 		start = (Button) findViewById(R.id.buttonStart);
 		start.setOnClickListener(this);
 
 		rpm = (SeekBar) findViewById(R.id.seekBar);
 		rpm.setOnSeekBarChangeListener(this);
-		rpm.setMax(1000);
+		rpm.setMax(450);
 
 		new Random();
 		isUpdateNeeded = false;
@@ -157,8 +158,23 @@ public class DemoUIActivity extends Activity implements
 			} catch (IOException e) {
 				android.util.Log.e("FILE-MISSED", e.toString());
 			}
+			
 			seekPos = 0;
 		} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)
+		
+		/*// Initialize the Tachometer
+		jTach.jTachInit();
+		jTach.jTachConfig(rpm.getProgress());
+
+		recorder.startRecording();
+		isRecording = true;
+		
+		// Reset the UI counter
+		uiCounter = 0;
+		
+		// Starting the Timer
+		timer = new Timer();
+		timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);*/
 	}
 
 	/** call when come back from the settings screen. Refresh parameters */
@@ -178,11 +194,11 @@ public class DemoUIActivity extends Activity implements
 
 		switch (heli_type) {
 		case 0:
-			rpm.setMax(1000);
+			//rpm.setMax(1000);
 			Toast.makeText(this, "Standard", 5).show();
 			break;
 		case 1:
-			rpm.setMax(300);
+			//rpm.setMax(300);
 			Toast.makeText(this, "Microsized", 5).show();
 			break;
 		default:
@@ -367,6 +383,12 @@ public class DemoUIActivity extends Activity implements
 				recorder.release();
 				recorder = null;
 			}
+			
+			if (null != timer) {
+				timer.cancel();
+				timer.purge();
+				timer = null;
+			}
 
 			jTach.jTachFree(mAudioFrame);
 			this.finish();
@@ -381,7 +403,17 @@ public class DemoUIActivity extends Activity implements
 		public void run() {
 //			android.os.Process
 //					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-
+			
+			if (!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.VISIBLE) &&
+				!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.INVISIBLE))	{
+				android.util.Log.e("RUN", "View is not shown yet");
+				return;
+			}
+			
+			else	{
+				android.util.Log.e("RUN", "View is shown. Will now process...");
+			}
+			
 			/** Testing real-time run */
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
 				@Override
@@ -402,97 +434,67 @@ public class DemoUIActivity extends Activity implements
 			});
 
 			if (isRecording) {
-				if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
+				if (isMeasuring)	{
+					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
+						int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
+						jTach.jTachPush(mAudioFrame, nRead);
+						int processResult = (int) jTach.jTachProcess();
+						lock.lock();
+						try {
+							currentRPM = processResult;
+						} finally {
+							lock.unlock();
+						}
+					} else { // For debug mode
+						mAudioFrame.position(0);
+						mAudioFrame.put(audioDataInBytes, seekPos,
+								AUDIO_BUFFER_SIZE);
+						seekPos += AUDIO_BUFFER_SIZE;
+						if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
+							seekPos = 0;
+						}
+						jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
+						int processResult = (int) jTach.jTachProcess();
+						lock.lock();
+						try {
+							currentRPM = processResult;
+						} finally {
+							lock.unlock();
+						}
+					} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false)
+				}
+
+				else
+				if (isSeeking)	{
 					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 					jTach.jTachPush(mAudioFrame, nRead);
 					int processResult = (int) jTach.jTachProcess();
-					lock.lock();
-					try {
-						currentRPM = processResult;
-					} finally {
-						lock.unlock();
-					}
-				} else { // For debug mode
-					mAudioFrame.position(0);
-					mAudioFrame.put(audioDataInBytes, seekPos,
-							AUDIO_BUFFER_SIZE);
-					seekPos += AUDIO_BUFFER_SIZE;
-					if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
-						seekPos = 0;
-					}
-					jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
-					int processResult = (int) jTach.jTachProcess();
-					lock.lock();
-					try {
-						currentRPM = processResult;
-					} finally {
-						lock.unlock();
-					}
-				} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode ==
-					// false)
-
-				if (uiCounter % 200 == 0) {
-					int width = chartView.getWidth();
-					int height = chartView.getHeight();
-
-					if (fftOutArray == null) {
-						// Create new array
-						fftOutArray = new float[width];
-					} else if (fftOutArray.length != width) {
-						// Initialize the array again
-						fftOutArray = new float[width];
-					}
-
-					float maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width,
-							fftOutArray);
-
-					if (maxFFT >= 0) { // No error
-						// Draw the spectrum here
-						for (int x = 0; x < width; x++) {
-							chartView.drawLine(x, fftOutArray[x] / maxFFT * height
-									/ 2.0f);
+					
+					if (uiCounter % 200 == 0) {
+						int width = seekView.getWidth();
+						int height = seekView.getHeight();
+	
+						if (fftOutArray == null) {
+							// Create new array
+							fftOutArray = new float[width];
+						} else if (fftOutArray.length != width) {
+							// Initialize the array again
+							fftOutArray = new float[width];
 						}
-						chartView.requestRender();
+	
+						float maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width, fftOutArray);
+	
+						if (maxFFT >= 0) { // No error
+							// Draw the spectrum here
+							for (int x = 0; x < width; x++) {
+								seekView.drawLine(x, (fftOutArray[x] / maxFFT) * height);
+								android.util.Log.e("FFTOUT", "" + fftOutArray[x]);
+							}
+							
+							seekView.requestRender();
+						}
 					}
 				}
-
-				// while (StartX < width) {
-				// int mapX = StartX * (int) (bufferSize / width);
-				//
-				// /** Debugging purpose */
-				// if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode) {
-				// if (null != num) {
-				// int StartY = num[mapX] / 2;
-				// chartView.drawLine(StartX, StartY);
-				//
-				// // Log.e("data filled",
-				// // Integer.toString(data.length) +
-				// // " x = " + StartX);
-				// }
-				// }
-				//
-				// else {
-				// if (null != data) {
-				// int StartY = data[mapX] / 40;
-				// chartView.drawLine(StartX, StartY);
-				//
-				// // Log.e("data filled",
-				// // Integer.toString(data.length) +
-				// // " x = " + StartX);
-				// }
-				// }
-				//
-				// StartX++;
-				//
-				// if (StartX == width) {
-				// chartView.requestRender();
-				// StartX = 0;
-				// return;
-				// }
-				// }
-
-				// android.util.Log.e("RECORD", "Read " + read
-				// + " bytes from the device recorder");
 			} // End if (isRecording)
 		}
 	}

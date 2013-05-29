@@ -13,7 +13,7 @@ public class ChartView extends GLSurfaceView {
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		
 		int width = View.MeasureSpec.getSize(widthMeasureSpec);
-		int height = View.MeasureSpec.getSize(heightMeasureSpec);
+		//int height = View.MeasureSpec.getSize(heightMeasureSpec);
 		
 		//Log.e("onMeasure", width + " " + height);
 		

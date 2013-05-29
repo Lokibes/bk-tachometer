@@ -34,7 +34,7 @@
         android:layout_alignParentTop="true"
         android:keepScreenOn="true" />
     
-    <vn.edu.hcmut.tachometer.ChartView
+    <vn.edu.hcmut.tachometer.SeekView
         android:id="@+id/seekView"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
