@@ -29,8 +29,13 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -38,7 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class DemoUIActivity extends Activity implements
-		OnSeekBarChangeListener, OnClickListener {
+		OnSeekBarChangeListener, OnClickListener, OnTouchListener {
 
 	/*
 	 * Defines some necessary constants
@@ -100,6 +105,7 @@ public class DemoUIActivity extends Activity implements
 	private byte[] audioDataInBytes;
 	private int seekPos;
 	private int audioDataLengthInBytes;
+	float maxFFT = -1.0f;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -138,7 +144,8 @@ public class DemoUIActivity extends Activity implements
 
 		rpm = (SeekBar) findViewById(R.id.seekBar);
 		rpm.setOnSeekBarChangeListener(this);
-		rpm.setMax(450);
+		rpm.setOnTouchListener(this);
+		//rpm.setMax(450);
 
 		new Random();
 		isUpdateNeeded = false;
@@ -162,19 +169,39 @@ public class DemoUIActivity extends Activity implements
 			seekPos = 0;
 		} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)
 		
-		/*// Initialize the Tachometer
-		jTach.jTachInit();
-		jTach.jTachConfig(rpm.getProgress());
+		// This observe the views and tell us whether the view is fully-displayed on screen or not,
+		// for us to avoid calling UI-method with unavailable parameters.
+		ViewTreeObserver vto = ((ViewGroup)this.getWindow().getDecorView()).getViewTreeObserver();
+	    vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+	        @Override
+	        public void onGlobalLayout() {
+	            ///getLocationOnScreen here
+	        	if (seekView.getVisibility() == View.VISIBLE)	{
+	        		rpm.setMax(seekView.getWidth());
+	        		
+	        		// Initialize the Tachometer
+	    			jTach.jTachInit();
+	    			jTach.jTachConfig(rpm.getProgress());
 
-		recorder.startRecording();
-		isRecording = true;
-		
-		// Reset the UI counter
-		uiCounter = 0;
-		
-		// Starting the Timer
-		timer = new Timer();
-		timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);*/
+	    			recorder.startRecording();
+	    			isRecording = true;
+	    			isUpdateNeeded = true;
+	    			
+	    			// Reset the UI counter
+	    			uiCounter = 0;
+
+	    			// Starting the Timer
+	    			timer = new Timer();
+	    			timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
+	    			
+	    			// Mission of this observer should end here
+	    			android.util.Log.e("Observer", "Set done!");
+	        	}
+
+	            ViewTreeObserver obs = ((ViewGroup)DemoUIActivity.this.getWindow().getDecorView()).getViewTreeObserver();
+	            obs.removeGlobalOnLayoutListener(this);
+	        }
+	    });
 	}
 
 	/** call when come back from the settings screen. Refresh parameters */
@@ -246,19 +273,30 @@ public class DemoUIActivity extends Activity implements
 		}
 	}
 
+	/** implements OnTouchListener */
+	@Override
+	public boolean onTouch(View view, MotionEvent me) {
+		// TODO Auto-generated method stub
+		notifier.setText("Estimated frequency: "
+				+ Float.toString(fftOutArray[((SeekBar)view).getProgress()]) + " Hz");
+		
+		notifier.show();
+		return false;
+	}
+	
 	/** implements OnSeekBarChangeListener */
 	public void onStartTrackingTouch(SeekBar sb) {
 
 	}
 
 	public void onStopTrackingTouch(SeekBar sb) {
-
+		isSeeking = false;
 	}
 
 	public void onProgressChanged(SeekBar sb, int progress, boolean b) {
-		notifier.setText("Estimated head speed: "
+		/*notifier.setText("Estimated head speed: "
 				+ Integer.toString(sb.getProgress()) + " RPM");
-		notifier.show();
+		notifier.show();*/
 	}
 
 	/** implements OnClickListener */
@@ -269,8 +307,8 @@ public class DemoUIActivity extends Activity implements
 
 			// Starting the Recorder
 			// TODO: check wether we should show the notifier
-			notifier.setText(String.valueOf(AUDIO_BUFFER_MAX_SIZE));
-			notifier.show();
+			//notifier.setText(String.valueOf(AUDIO_BUFFER_MAX_SIZE));
+			//notifier.show();
 
 			// Initialize the Tachometer
 			jTach.jTachInit();
@@ -295,13 +333,13 @@ public class DemoUIActivity extends Activity implements
 			timer = new Timer();
 			timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
 		} else {
-			isRecording = false;
-			recorder.stop();
-
-			isUpdateNeeded = false;
+			//isRecording = false;
+			//recorder.stop();
+			
 			// It cancel only the SCHEDULED tasks, not the RUNNING ones!
-			// So we must use "isUpdateNeeded" flag to prevent its stupid
-			// behavior =.=
+			// So we must use "isUpdateNeeded" flag to prevent its stupid behavior =.=
+			//isUpdateNeeded = false;
+			
 			timer.cancel();
 			timer.purge();
 
@@ -362,8 +400,9 @@ public class DemoUIActivity extends Activity implements
 
 			start.setText("MEASURE");
 			start.setTextColor(Color.BLACK);
-			// start.setBackgroundColor(Color.WHITE);
+			
 			rpm.setEnabled(true);
+			isSeeking = true;
 		}
 	}
 
@@ -379,6 +418,7 @@ public class DemoUIActivity extends Activity implements
 			startActivity(intent);
 
 			isRecording = false;
+			
 			if (null != recorder) {
 				recorder.release();
 				recorder = null;
@@ -404,7 +444,7 @@ public class DemoUIActivity extends Activity implements
 //			android.os.Process
 //					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 			
-			if (!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.VISIBLE) &&
+			/*if (!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.VISIBLE) &&
 				!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.INVISIBLE))	{
 				android.util.Log.e("RUN", "View is not shown yet");
 				return;
@@ -412,7 +452,7 @@ public class DemoUIActivity extends Activity implements
 			
 			else	{
 				android.util.Log.e("RUN", "View is shown. Will now process...");
-			}
+			}*/
 			
 			/** Testing real-time run */
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
@@ -422,7 +462,9 @@ public class DemoUIActivity extends Activity implements
 						uiCounter += TIME_INTERVAL;
 						if (uiCounter > UI_UPDATE_INTERVAL) {
 							uiCounter = uiCounter % TIME_INTERVAL;
+							
 							lock.lock();
+							
 							try {
 								rpmCal.setText(currentRPM + " RPM");
 							} finally {
@@ -445,7 +487,11 @@ public class DemoUIActivity extends Activity implements
 						} finally {
 							lock.unlock();
 						}
-					} else { // For debug mode
+						
+					}
+					
+					// For debug mode
+					else {
 						mAudioFrame.position(0);
 						mAudioFrame.put(audioDataInBytes, seekPos,
 								AUDIO_BUFFER_SIZE);
@@ -453,9 +499,12 @@ public class DemoUIActivity extends Activity implements
 						if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
 							seekPos = 0;
 						}
+						
 						jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
 						int processResult = (int) jTach.jTachProcess();
+						
 						lock.lock();
+						
 						try {
 							currentRPM = processResult;
 						} finally {
@@ -468,7 +517,9 @@ public class DemoUIActivity extends Activity implements
 				if (isSeeking)	{
 					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 					jTach.jTachPush(mAudioFrame, nRead);
-					int processResult = (int) jTach.jTachProcess();
+					
+					// TODO: Why must I process to get things that I need for the processing?
+					jTach.jTachProcess();
 					
 					if (uiCounter % 200 == 0) {
 						int width = seekView.getWidth();
@@ -481,14 +532,15 @@ public class DemoUIActivity extends Activity implements
 							// Initialize the array again
 							fftOutArray = new float[width];
 						}
-	
-						float maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width, fftOutArray);
+						
+						android.util.Log.e("PRE-FFT", "" + width + " " + height);
+						maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width, fftOutArray);
 	
 						if (maxFFT >= 0) { // No error
 							// Draw the spectrum here
 							for (int x = 0; x < width; x++) {
 								seekView.drawLine(x, (fftOutArray[x] / maxFFT) * height);
-								android.util.Log.e("FFTOUT", "" + fftOutArray[x]);
+								//android.util.Log.e("FFTOUT", "" + fftOutArray[x]);
 							}
 							
 							seekView.requestRender();

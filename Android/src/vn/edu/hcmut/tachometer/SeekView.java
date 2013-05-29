@@ -10,6 +10,7 @@ public class SeekView extends GLSurfaceView {
 	
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		android.util.Log.e("ON-MEASURE", "");
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		
 		int width = View.MeasureSpec.getSize(widthMeasureSpec);
@@ -22,6 +23,7 @@ public class SeekView extends GLSurfaceView {
 	}
 	
 	public SeekView(Context context) {
+
 		super(context);
 		
         // Create an OpenGL ES 2.0 context.
@@ -54,6 +56,13 @@ public class SeekView extends GLSurfaceView {
 	}
 	
 	public void drawLine(float x, float y)	{
+		if (null == myRenderer.mChart)	{
+			android.util.Log.e("drawLine", "null 2");
+			/*myRenderer.mChart = new SeekChart();
+			myRenderer.mChart.setSize(this.getWidth(), this.getHeight());*/
+			return;
+		}
+		
 		myRenderer.mChart.lineCoords[(int) x] = y;
 	}
 }
