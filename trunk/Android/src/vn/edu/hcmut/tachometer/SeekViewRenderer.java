@@ -22,7 +22,9 @@ public class SeekViewRenderer implements GLSurfaceView.Renderer {
     	
         //mTriangle = new Triangle();
     	//Log.e("onSurfaceCreated", "" + width + " " + height);
-    	mChart = new SeekChart();
+    	//if (null == mChart)	{
+    		mChart = new SeekChart();
+    	//}
     }
 
     @Override
@@ -109,17 +111,19 @@ class SeekChart	{
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
 
     public void setSize(int width, int height)	{
+    	android.util.Log.e("setSize", width + " " + height);
+    	
     	this.width = width;
     	this.height = height;
-    }
-    
-    public SeekChart() {
-    	//Log.e("Chart", "" + width + " " + height);
-    	lineCoords = new float[450];
+    	
+    	//lineCoords = new float[450];
+    	lineCoords = new float[width];
     	for (int i = 0; i < lineCoords.length; i ++)	{
     		lineCoords[i] = 0.0f;
     	}
-    	
+    }
+    
+    public SeekChart() {
         // initialize vertex byte buffer for shape coordinates
     	// (number of coordinate values * 4 bytes per float)
         //ByteBuffer bb = ByteBuffer.allocateDirect(lineCoords.length * 4);
