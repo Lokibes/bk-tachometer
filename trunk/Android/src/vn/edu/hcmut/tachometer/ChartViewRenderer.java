@@ -116,8 +116,8 @@ class Chart	{
     public Chart() {
     	//Log.e("Chart", "" + width + " " + height);
     	lineCoords = new float[1000];
-    	for (float f: lineCoords)	{
-    		f = 0.0f;
+    	for (int i = 0; i < lineCoords.length; i ++)	{
+    		lineCoords[i] = 0.0f;
     	}
     	
         // initialize vertex byte buffer for shape coordinates
