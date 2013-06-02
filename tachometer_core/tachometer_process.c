@@ -47,7 +47,7 @@ int32_t Tachometer_Init(void* tacho) {
 
 	// Zero padding the tacho_inst->fft_in
 	int i;
-	for (i = TACHO_AUTO_CORRELATION_LENGTH; i < TACHO_EXPECTED_LENGTH; i++) {
+	for (i = TACHO_FRAME_LENGTH; i < TACHO_EXPECTED_LENGTH; i++) {
 		fft_in[i] = 0.0f;
 	}
 
@@ -174,7 +174,12 @@ float Tachometer_Process(void* tacho) {
 	 * Input: the inAudio array with TACHO_FRAME_LENGTH samples, 16 bits per each sample
 	 * Output: the tacho->timeSeries array, 32 bits per each sample.
 	 */
-	Tachometer_AutoCorrelation(inAudio, tacho_inst->fft_in);
+//	Tachometer_AutoCorrelation(inAudio, tacho_inst->fft_in);
+	int i;
+	float* fftIn = tacho_inst->fft_in;
+	for (i = 0; i < TACHO_FRAME_LENGTH; i++) {
+		fftIn[i] = (float) inAudio[i];
+	}
 
 	/*
 	 * Step 2: FFT
@@ -182,7 +187,6 @@ float Tachometer_Process(void* tacho) {
 	 */
 	fftwf_execute(tacho_inst->plan_forward);
 
-	int i;
 	float* restrict fft_out_magnitude = tacho_inst->fft_out_magnitude;
 	fftwf_complex* restrict fft_out = tacho_inst->fft_out;
 //	for (i = tacho_inst->beginIndex;
