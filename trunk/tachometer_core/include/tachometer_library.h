@@ -124,7 +124,7 @@ static __inline float Tachometer_MaxFrequency(float* vector, int32_t beginIndex)
 	float maximum = 0.0f;
 	for (i = 0; i < TACHO_ESTIMATION_RANGE; i++) {
 		if (vector[beginIndex + i] > maximum) {
-			maximum = vector[i];
+			maximum = vector[beginIndex + i];
 			index = i;
 		}
 	}
