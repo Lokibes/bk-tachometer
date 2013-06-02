@@ -6,8 +6,9 @@
 #include <math.h>
 #include "tachometer_defs.h"
 #include "tachometer_library.h"
+#include "tachometer_wavelet1d.h"
 
-#define LOOP_NUM		200
+#define LOOP_NUM		180
 
 int main(void);
 void test01(void);
@@ -59,9 +60,9 @@ int main(void)
 	/*
 	 * Test the main algorithm here
 	 */
-	FILE* audioFile = fopen("./rotation_16kHz.raw", "rb");
+	FILE* audioFile = fopen("./helicopter.raw", "rb");
 
-	int32_t estimatedFreq = 400;
+	int32_t estimatedFreq =180;
 	int16_t* inAudio = malloc(TACHO_FRAME_LENGTH * LOOP_NUM * sizeof(int16_t));
 	fread(inAudio, sizeof(int16_t), TACHO_FRAME_LENGTH * LOOP_NUM, audioFile);
 

@@ -10,13 +10,10 @@
 #include "tachometer_history.h"
 #include "tachometer_audio_buffer.h"
 #include "fftw3.h"
+#include "tachometer_wavelet1d.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
-
-#define DEBUG_MODE
-
-#define FREQ_TO_INDEX_COEF	(1 / (((float)(TACHO_SAMPLING_FREQ >> 1)) / ((float) TACHO_FFT_OUT_LENGTH)))
 
 // Create
 void* Tachometer_Create() {
@@ -32,6 +29,8 @@ void* Tachometer_Create() {
 
 	Tacho_Buffer_Create(&tacho_inst->audioBuffer);
 
+	// Create the wavelet instance
+	Tachometer_Wavelet_Create(&tacho_inst->wavelets_inst);
 	return tacho_inst;
 }
 
@@ -78,6 +77,9 @@ int32_t Tachometer_Init(void* tacho) {
 	// Initialize the audio buffer
 	Tacho_Buffer_Init(tacho_inst->audioBuffer);
 
+	// Initialize the wavelet 1d struct
+	Tachometer_Wavelet_Init(tacho_inst->wavelets_inst);
+
 	return 0;
 }
 
@@ -89,6 +91,7 @@ int32_t Tachometer_Free(void* tacho) {
 	}
 	Tacho_History_Free(tacho_inst->tacho_history_inst);
 	Tacho_Buffer_Free(tacho_inst->audioBuffer);
+	Tachometer_Wavelet_Free(tacho_inst->wavelets_inst);
 	fftwf_free(tacho_inst->fft_in);
 	fftwf_free(tacho_inst->fft_out);
 	fftwf_destroy_plan(tacho_inst->plan_forward);
@@ -101,8 +104,8 @@ int32_t Tachometer_Free(void* tacho) {
 // Configuration
 int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
-	int32_t estimatedIndex = (int32_t) (((float) estimatedFreq)
-			* FREQ_TO_INDEX_COEF * 2.0f); // * 2.0f because of the auto correlation algorithm
+	int32_t estimatedIndex = (int32_t) (((float) estimatedFreq) * 2.0f
+			* TACHO_FREQ_TO_INDEX_COEF); // * 2.0f because of the auto correlation algorithm
 
 	// Imply that vector is not NULL
 	int32_t beginIndex = estimatedIndex - TACHO_ESTIMATION_HALF_RANGE + 1;
@@ -116,6 +119,10 @@ int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 	} // End if (beginIndex < 0)
 
 	tacho_inst->beginIndex = beginIndex;
+
+	// Also prepare the wavelet instant before processing
+	Tachometer_Wavelet_Prepare(tacho_inst->wavelets_inst, tacho_inst);
+
 	return 0;
 }
 
@@ -144,7 +151,6 @@ int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size) {
 // Process:
 float Tachometer_Process(void* tacho) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
-	float resultFreq = 0.0f;
 	if (tacho_inst == NULL) {
 		return -1.0f;
 	}
@@ -179,54 +185,28 @@ float Tachometer_Process(void* tacho) {
 	int i;
 	float* restrict fft_out_magnitude = tacho_inst->fft_out_magnitude;
 	fftwf_complex* restrict fft_out = tacho_inst->fft_out;
-	for (i = tacho_inst->beginIndex;
-			i < TACHO_ESTIMATION_RANGE + tacho_inst->beginIndex; i++) {
-		fft_out_magnitude[i] = fft_out[i][0] * fft_out[i][0]
-				+ fft_out[i][1] * fft_out[i][1];
+//	for (i = tacho_inst->beginIndex;
+//			i < TACHO_ESTIMATION_RANGE + tacho_inst->beginIndex; i++) {
+//		fft_out_magnitude[i] = sqrtf(
+//				fft_out[i][0] * fft_out[i][0] + fft_out[i][1] * fft_out[i][1]);
+//	}
+	for (i = 0; i < TACHO_FFT_OUT_LENGTH; i++) {
+		fft_out_magnitude[i] = sqrtf(
+				fft_out[i][0] * fft_out[i][0] + fft_out[i][1] * fft_out[i][1]);
 	}
 
 	/*
 	 *	Step 3: Peak finding
 	 *	Find the maximum index of the
 	 */
-	Tacho_History_t* tacho_history_inst = tacho_inst->tacho_history_inst;
-	float bestFrequency = Tachometer_MaxFrequency(fft_out_magnitude,
-			tacho_inst->beginIndex);
-	int32_t ret = Tacho_History_Add_Last(tacho_history_inst, bestFrequency);
-	if (ret == 1) {
-		/*
-		 * Enough data in the history
-		 */
-		float average = tacho_history_inst->sum
-				* (1.0f / TACHO_HISTORY_CAPACITY);
-		if (bestFrequency < (average * 1.08f)
-				&& bestFrequency > (average * 0.92f)) {
-			/*
-			 * The frequency may be stable. It might be the rotary speed.
-			 */
-			tacho_history_inst->accept_times++;
-			if (tacho_history_inst->accept_times >= TACHO_HISTORY_CAPACITY) {
-				// TACHO_HISTORY_CAPACITY == 25: the frequency is stable for 1 second long
-				// This frequency is the rotary frequency
-				resultFreq = average / 2.0f; // Divide by 2.0f to fix the autocorrelation frequency doubling problem
-				return resultFreq;
-			}
-		} else {
-			/*
-			 * The frequency is not stable, it cannot be the rotary frequency
-			 */
-			tacho_history_inst->accept_times = 0;
-		}
-	} else if (ret == 0) {
-		/*
-		 * Not enough data in the history
-		 */
+	// Wavelet transformation
+	float ret = Tachometer_Wavelet_Transform(tacho_inst->wavelets_inst,
+			&fft_out_magnitude[tacho_inst->beginIndex], TACHO_ESTIMATION_RANGE);
+	if (ret > 0.0f) {
+		return ret / 2.0f; // Due to the autocorellation side effect
 	} else {
-		// ERROR
-		return -1.0f;
+		return ret;
 	}
-
-	return 0.0f; // Means that has not found a rotary frequency
 }
 
 float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
