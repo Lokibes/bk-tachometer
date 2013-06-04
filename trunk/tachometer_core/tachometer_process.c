@@ -11,6 +11,7 @@
 #include "tachometer_audio_buffer.h"
 #include "fftw3.h"
 #include "tachometer_wavelet1d.h"
+#include "tachometer_wavelet_denoiser.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
@@ -31,6 +32,10 @@ void* Tachometer_Create() {
 
 	// Create the wavelet instance
 	Tachometer_Wavelet_Create(&tacho_inst->wavelets_inst);
+
+	// Create the denoiser
+	Tachometer_Denoise_Create(&tacho_inst->denoise_inst);
+
 	return tacho_inst;
 }
 
@@ -80,6 +85,9 @@ int32_t Tachometer_Init(void* tacho) {
 	// Initialize the wavelet 1d struct
 	Tachometer_Wavelet_Init(tacho_inst->wavelets_inst);
 
+	// Initialize the denoiser
+	Tachometer_Denoise_Init(tacho_inst->denoise_inst);
+
 	return 0;
 }
 
@@ -89,9 +97,11 @@ int32_t Tachometer_Free(void* tacho) {
 	if (tacho_inst == NULL) {
 		return -1;
 	}
+
 	Tacho_History_Free(tacho_inst->tacho_history_inst);
 	Tacho_Buffer_Free(tacho_inst->audioBuffer);
 	Tachometer_Wavelet_Free(tacho_inst->wavelets_inst);
+	Tachometer_Denoise_Free(tacho_inst->denoise_inst);
 	fftwf_free(tacho_inst->fft_in);
 	fftwf_free(tacho_inst->fft_out);
 	fftwf_destroy_plan(tacho_inst->plan_forward);
@@ -104,8 +114,8 @@ int32_t Tachometer_Free(void* tacho) {
 // Configuration
 int32_t Tachometer_Config(void* tacho, int32_t estimatedFreq) {
 	Tacho_t* tacho_inst = (Tacho_t*) tacho;
-	int32_t estimatedIndex = (int32_t) (((float) estimatedFreq) * 2.0f
-			* TACHO_FREQ_TO_INDEX_COEF); // * 2.0f because of the auto correlation algorithm
+	int32_t estimatedIndex = (int32_t) (((float) estimatedFreq)
+			* TACHO_FREQ_TO_INDEX_COEF);
 
 	// Imply that vector is not NULL
 	int32_t beginIndex = estimatedIndex - TACHO_ESTIMATION_HALF_RANGE + 1;
@@ -163,54 +173,30 @@ float Tachometer_Process(void* tacho) {
 	int16_t* inAudio;
 	Tacho_Buffer_Pull(tacho_inst->audioBuffer, &inAudio);
 
-	/*
-	 * Step 1: Autocorrelation to suppress the noise
-	 * Step 2: FFT
-	 * Step 3: Peak finding
-	 */
+//	float* fftIn = tacho_inst->fft_in;
+//	int kk;
+//	for (kk = 0; kk < TACHO_DENOISE_LENGTH; kk++) {
+//		fftIn[kk] = (float) inAudio[kk];
+//	}
 
-	/*
-	 * Step 1: Autocorrelation to suppress the noise
-	 * Input: the inAudio array with TACHO_FRAME_LENGTH samples, 16 bits per each sample
-	 * Output: the tacho->timeSeries array, 32 bits per each sample.
-	 */
-//	Tachometer_AutoCorrelation(inAudio, tacho_inst->fft_in);
+	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio,
+			tacho_inst->fft_in);
+
+	// Do the FFT
 	int i;
-	float* fftIn = tacho_inst->fft_in;
-	for (i = 0; i < TACHO_FRAME_LENGTH; i++) {
-		fftIn[i] = (float) inAudio[i];
-	}
-
-	/*
-	 * Step 2: FFT
-	 *
-	 */
 	fftwf_execute(tacho_inst->plan_forward);
-
 	float* restrict fft_out_magnitude = tacho_inst->fft_out_magnitude;
 	fftwf_complex* restrict fft_out = tacho_inst->fft_out;
-//	for (i = tacho_inst->beginIndex;
-//			i < TACHO_ESTIMATION_RANGE + tacho_inst->beginIndex; i++) {
-//		fft_out_magnitude[i] = sqrtf(
-//				fft_out[i][0] * fft_out[i][0] + fft_out[i][1] * fft_out[i][1]);
-//	}
 	for (i = 0; i < TACHO_FFT_OUT_LENGTH; i++) {
 		fft_out_magnitude[i] = sqrtf(
 				fft_out[i][0] * fft_out[i][0] + fft_out[i][1] * fft_out[i][1]);
 	}
 
-	/*
-	 *	Step 3: Peak finding
-	 *	Find the maximum index of the
-	 */
 	// Wavelet transformation
 	float ret = Tachometer_Wavelet_Transform(tacho_inst->wavelets_inst,
 			&fft_out_magnitude[tacho_inst->beginIndex], TACHO_ESTIMATION_RANGE);
-	if (ret > 0.0f) {
-		return ret / 2.0f; // Due to the autocorellation side effect
-	} else {
-		return ret;
-	}
+
+	return ret;
 }
 
 float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
@@ -276,7 +262,6 @@ float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
 		}
 
 		// Interpolate
-
 		Tachometer_Interpolation(tacho_inst->x, tacho_inst->fft_out_magnitude,
 				TACHO_FFT_OUT_LENGTH, tacho_inst->newX, fft_out_magnitude, size,
 				&maxNum);

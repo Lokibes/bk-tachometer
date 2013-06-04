@@ -61,12 +61,8 @@ void* swt(wavelets_t* wavelets_inst, vector<float> &signal1, int J,
 
 		sig = cA;
 
-		if (iter == J - 1) {
-			swt_output.insert(swt_output.end(), cD.begin(), cD.end());
-			swt_output.insert(swt_output.end(), cA.begin(), cA.end());
-		} else {
-			swt_output.insert(swt_output.end(), cD.begin(), cD.end());
-		}
+		swt_output.insert(swt_output.end(), cD.begin(), cD.end());
+		swt_output.insert(swt_output.end(), cA.begin(), cA.end());
 	}
 
 	return 0;
@@ -102,6 +98,31 @@ int filtcoef(string name, vector<float> &lp1, vector<float> &hp1,
 		lp2.assign(lp2_a, lp2_a + sizeof(lp2_a) / sizeof(float));
 
 		float hp2_a[] = { 0.70710678118654757f, -0.70710678118654757f };
+		hp2.assign(hp2_a, hp2_a + sizeof(hp2_a) / sizeof(float));
+		return 0;
+	} else if (name == "sym4") {
+		float lp1_a[] = { -0.075765714789273325f, -0.02963552764599851f,
+				0.49761866763201545f, 0.80373875180591614f,
+				0.29785779560527736f, -0.099219543576847216f,
+				-0.012603967262037833f, 0.032223100604042702f };
+		lp1.assign(lp1_a, lp1_a + sizeof(lp1_a) / sizeof(float));
+
+		float hp1_a[] = { -0.032223100604042702f, -0.012603967262037833f,
+				0.099219543576847216f, 0.29785779560527736f,
+				-0.80373875180591614f, 0.49761866763201545f,
+				0.02963552764599851f, -0.075765714789273325f };
+		hp1.assign(hp1_a, hp1_a + sizeof(hp1_a) / sizeof(float));
+
+		float lp2_a[] = { 0.032223100604042702f, -0.012603967262037833f,
+				-0.099219543576847216f, 0.29785779560527736f,
+				0.80373875180591614f, 0.49761866763201545f,
+				-0.02963552764599851f, -0.075765714789273325f };
+		lp2.assign(lp2_a, lp2_a + sizeof(lp2_a) / sizeof(float));
+
+		float hp2_a[] = { -0.075765714789273325f, 0.02963552764599851f,
+				0.49761866763201545f, -0.80373875180591614f,
+				0.29785779560527736f, 0.099219543576847216f,
+				-0.012603967262037833f, -0.032223100604042702f };
 		hp2.assign(hp2_a, hp2_a + sizeof(hp2_a) / sizeof(float));
 		return 0;
 	} else {

@@ -13,12 +13,13 @@
 #include <map>
 #include <list>
 #include "tachometer_defs.h"
+#include "fftw3.h"
 using namespace std;
 
 #define TACHO_WAVELET_TRANSFORM_LEVEL_NUM						4		// 4 levels of transformation
 #define TACHO_WAVELET_NUM_OF_ESTIMATE_PEAKS						15		// The number of estimated peaks to find the correct peak
-#define TACHO_WAVELET_HISTORY_SIZE								30
-#define TACHO_WAVELET_ACCEPTABLE_HISTORY_NUM					25
+#define TACHO_WAVELET_HISTORY_SIZE								25
+#define TACHO_WAVELET_ACCEPTABLE_HISTORY_NUM					20
 #define TACHO_WAVELET_DELTA_HISTORY_THRESHOLD					(TACHO_WAVELET_HISTORY_SIZE - TACHO_WAVELET_ACCEPTABLE_HISTORY_NUM)
 #define TACHO_WAVELET_MAX_NUM_OF_HISTORY_UNITS					(TACHO_WAVELET_NUM_OF_ESTIMATE_PEAKS * 2)
 typedef struct {
@@ -34,9 +35,9 @@ typedef struct {
 	float averageSpectrum;
 	int32_t num;
 	int32_t historyTime;
-list<float> historyFreqList;
-list<float> historySpectrumList;
-map<float, pair <float, float> > guessFreqMap;
+	list<float> historyFreqList;
+	list<float> historySpectrumList;
+	map<float, pair<float, float> > guessFreqMap;
 } history_unit_t;
 
 typedef struct {

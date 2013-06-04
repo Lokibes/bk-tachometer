@@ -14,6 +14,7 @@
 #include <map>
 #include <list>
 #include <cmath>
+#include <string>
 #include "fftw3.h"
 #include "wavelet2s.h"
 #include "tachometer_wavelet1d.h"
@@ -157,10 +158,13 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 	// This comment is when the TACHO_WAVELET_TRANSFORM_LEVEL_NUM is 4
 	// In the wavelets_inst->outWavelets array,:
 	//	Index (0 * TACHO_ESTIMATION_RANGE)	-> 		(1 * TACHO_ESTIMATION_RANGE - 1) is detail level 1
-	//  Index (1 * TACHO_ESTIMATION_RANGE)	->		(2 * TACHO_ESTIMATION_RANGE - 1) is detail level 2
-	//	Index (2 * TACHO_ESTIMATION_RANGE)	->		(3 * TACHO_ESTIMATION_RANGE - 1) is detail level 3
-	// 	Index (3 * TACHO_ESTIMATION_RANGE)	->		(4 * TACHO_ESTIMATION_RANGE - 1) is detail level 4
-	//  Index (4 * TACHO_ESTIMATION_RANGE)	->		(5 * TACHO_ESTIMATION_RANGE - 1) is approximation level 4
+	//  Index (1 * TACHO_ESTIMATION_RANGE)	->		(2 * TACHO_ESTIMATION_RANGE - 1) is approximation level 1
+	//	Index (2 * TACHO_ESTIMATION_RANGE)	-> 		(3 * TACHO_ESTIMATION_RANGE - 1) is detail level 2
+	//  Index (3 * TACHO_ESTIMATION_RANGE)	->		(4 * TACHO_ESTIMATION_RANGE - 1) is approximation level 2
+	//	Index (4 * TACHO_ESTIMATION_RANGE)	-> 		(5 * TACHO_ESTIMATION_RANGE - 1) is detail level 3
+	//  Index (5 * TACHO_ESTIMATION_RANGE)	->		(6 * TACHO_ESTIMATION_RANGE - 1) is approximation level 3
+	//	Index (6 * TACHO_ESTIMATION_RANGE)	-> 		(7 * TACHO_ESTIMATION_RANGE - 1) is detail level 4
+	//  Index (7 * TACHO_ESTIMATION_RANGE)	->		(8 * TACHO_ESTIMATION_RANGE - 1) is approximation level 4
 
 	// Clear the zero crossing arrays
 	wavelets_inst->zeroCrossingsDetail1.clear();
@@ -172,20 +176,22 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 	float multipleResult;
 	float deltaX = wavelets_inst->t[1] - wavelets_inst->t[0];
 	float deltaY;
+	int32_t begin, end;
 
 	// Process the Detail level 1
-	for (int i = TACHO_ESTIMATION_RANGE * 0; i < TACHO_ESTIMATION_RANGE * 1 - 1;
-			i++) {
+	begin = 0 * TACHO_ESTIMATION_RANGE;
+	end = 1 * TACHO_ESTIMATION_RANGE - 1;
+	for (int32_t i = begin; i <= end; i++) {
 		multipleResult = wavelets_inst->outWavelets[i]
 				* wavelets_inst->outWavelets[i + 1];
 
 		if (multipleResult <= 0.0f) { // This seems to be the zero crossing point
 			deltaY = wavelets_inst->outWavelets[i + 1]
 					- wavelets_inst->outWavelets[i];
-			if (deltaY > 0.0f) { // For finding local maxima, only choose deltaY > 0
+			if (deltaY > 0.0f) { // For finding local maximal, only choose deltaY > 0
 				wavelets_inst->zeroCrossingsDetail1.push_back(
 						wavelets_inst->t[i]
-								- wavelets_inst->outWavelets[i] * deltaX
+								- wavelets_inst->outWavelets[i - begin] * deltaX
 										/ deltaY);
 				wavelets_inst->zeroCrossingsDetail1Indexes.push_back(i);
 			}
@@ -193,8 +199,9 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 	} // End for
 
 	// Process the Detail level 2
-	for (int i = TACHO_ESTIMATION_RANGE * 1; i < TACHO_ESTIMATION_RANGE * 2 - 1;
-			i++) {
+	begin = 2 * TACHO_ESTIMATION_RANGE;
+	end = 3 * TACHO_ESTIMATION_RANGE - 1;
+	for (int32_t i = begin; i <= end; i++) {
 		multipleResult = wavelets_inst->outWavelets[i]
 				* wavelets_inst->outWavelets[i + 1];
 
@@ -203,7 +210,7 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 					- wavelets_inst->outWavelets[i];
 			if (deltaY > 0.0f) { // For finding local maxima, only choose deltaY > 0
 				wavelets_inst->zeroCrossingsDetail2.push_back(
-						wavelets_inst->t[i - TACHO_ESTIMATION_RANGE]
+						wavelets_inst->t[i - begin]
 								- wavelets_inst->outWavelets[i] * deltaX
 										/ deltaY);
 			}
@@ -211,8 +218,9 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 	} // End for
 
 	// Process the Detail level 3
-	for (int i = TACHO_ESTIMATION_RANGE * 2; i < TACHO_ESTIMATION_RANGE * 3 - 1;
-			i++) {
+	begin = 4 * TACHO_ESTIMATION_RANGE;
+	end = 5 * TACHO_ESTIMATION_RANGE - 1;
+	for (int32_t i = begin; i <= end; i++) {
 		multipleResult = wavelets_inst->outWavelets[i]
 				* wavelets_inst->outWavelets[i + 1];
 		deltaY = wavelets_inst->outWavelets[i + 1]
@@ -222,7 +230,7 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 					- wavelets_inst->outWavelets[i];
 			if (deltaY > 0.0f) { // For finding local maxima, only choose deltaY > 0
 				wavelets_inst->zeroCrossingsDetail3.push_back(
-						wavelets_inst->t[i - TACHO_ESTIMATION_RANGE * 2]
+						wavelets_inst->t[i - begin]
 								- wavelets_inst->outWavelets[i] * deltaX
 										/ deltaY);
 			}
@@ -230,8 +238,9 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 	} // End for
 
 	// Process the Detail level 4
-	for (int i = TACHO_ESTIMATION_RANGE * 3; i < TACHO_ESTIMATION_RANGE * 4 - 1;
-			i++) {
+	begin = 6 * TACHO_ESTIMATION_RANGE;
+	end = 7 * TACHO_ESTIMATION_RANGE - 1;
+	for (int32_t i = begin; i <= end; i++) {
 		multipleResult = wavelets_inst->outWavelets[i]
 				* wavelets_inst->outWavelets[i + 1];
 		deltaY = wavelets_inst->outWavelets[i + 1]
@@ -241,7 +250,7 @@ static void Wavelets_Zero_Crossings(wavelets_t *wavelets_inst) {
 					- wavelets_inst->outWavelets[i];
 			if (deltaY > 0.0f) { // For finding local maxima, only choose deltaY > 0
 				wavelets_inst->zeroCrossingsDetail4.push_back(
-						wavelets_inst->t[i - TACHO_ESTIMATION_RANGE * 3]
+						wavelets_inst->t[i - begin]
 								- wavelets_inst->outWavelets[i] * deltaX
 										/ deltaY);
 			}
