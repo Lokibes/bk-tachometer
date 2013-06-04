@@ -1,20 +1,9 @@
-/*
- * auto_correlation.h
- *
- *  Created on: Apr 3, 2013
- *      Author: oneadmin
- */
-
 #ifndef TACHOMETER_LIBRARY_
 #define TACHOMETER_LIBRARY_
 
 #include "tachometer_defs.h"
 
 #define INDEX_TO_FREQ	(((float)TACHO_HALF_SAMPLING_FREQ) / ((float)(TACHO_FFT_OUT_LENGTH - 1)))
-
-// To make the auto correlation
-void Tachometer_AutoCorrelation(int16_t* restrict in_vector,
-		float* restrict result);
 
 // Return the maximum absolute 16 bit value in an array
 int32_t Tachometer_MaxAbsolute16C(int16_t* vector);
@@ -40,8 +29,7 @@ int32_t Tachometer_Get_Audio_Frame_Location(void* tacho, int16_t** audioFrame);
 /**
  * Push audio
  */
-int32_t Tachometer_Push(void* tacho, int16_t* inAudio,
-		int32_t size);
+int32_t Tachometer_Push(void* tacho, int16_t* inAudio, int32_t size);
 
 /**
  * Return:
@@ -67,7 +55,8 @@ float Tachometer_Process(void* tacho);
  * 		-1.0f			Error
  * 		? >= 0.0f		The maximum fft value
  */
-float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq, int32_t size, float* fft_out_magnitude);
+float Tachometer_FFT_Out(void* tacho, int32_t beginFreq, int32_t endFreq,
+		int32_t size, float* fft_out_magnitude);
 
 static __inline int16_t Tachometer_GetSizeInBits(uint32_t n) {
 	int32_t bits;

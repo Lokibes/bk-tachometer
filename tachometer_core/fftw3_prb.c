@@ -60,22 +60,23 @@ int main(void)
 	/*
 	 * Test the main algorithm here
 	 */
-	FILE* audioFile = fopen("./helicopter.raw", "rb");
+	FILE* audioFile = fopen("./rotation_16kHz.raw", "rb");
 
-	int32_t estimatedFreq =180;
+	int32_t estimatedFreq = 800;
 	int16_t* inAudio = malloc(TACHO_FRAME_LENGTH * LOOP_NUM * sizeof(int16_t));
 	fread(inAudio, sizeof(int16_t), TACHO_FRAME_LENGTH * LOOP_NUM, audioFile);
 
 	void* tacho_inst = Tachometer_Create();
 	Tachometer_Init(tacho_inst);
-	Tachometer_Config(tacho_inst, estimatedFreq);	// Fix the autocorrelation frequency doubling problem
+	Tachometer_Config(tacho_inst, estimatedFreq);
 
 	int32_t i;
 	for (i = 0; i < LOOP_NUM; i++) {
-		Tachometer_Push(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]), TACHO_FRAME_LENGTH);
+		Tachometer_Push(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]),
+				TACHO_FRAME_LENGTH);
 		float ret = Tachometer_Process(tacho_inst);
 		if (ret > 0.0f) {
-			printf("Loop %d: Result frequency: %f\n", i + 1,  ret);
+			printf("Loop %d: Result frequency: %f\n", i + 1, ret);
 		} else {
 			printf("Loop %d: Not found a good rotary frequency\n", i + 1);
 		}

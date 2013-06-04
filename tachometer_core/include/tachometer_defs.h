@@ -17,16 +17,16 @@
 #define TACHO_WORD16_MIN       				-32768
 #define TACHO_WORD16_MAX       				32767
 #define TACHO_FRAME_LENGTH					1280		// 1280 samples per frame (80 ms)
-//#define TACHO_AUTO_CORRELATION_LENGTH		((TACHO_FRAME_LENGTH << 1) - 1)
-#define TACHO_EXPECTED_LENGTH				(1 << 12)		// 2 ^ 13 values
+#define TACHO_DENOISE_LENGTH				(1 << 10)	// 1024 samples
+#define TACHO_DENOISE_HALF_LENGTH			(TACHO_DENOISE_LENGTH >> 1)
+#define TACHO_EXPECTED_LENGTH				(1 << 12)		// 2 ^ 12 values
 #define TACHO_FFT_IN_LENGTH					TACHO_EXPECTED_LENGTH
 #define TACHO_FFT_OUT_LENGTH				((TACHO_EXPECTED_LENGTH >> 1) + 1)
-#define TACHO_ZERO_PADDING_LENGTH			(TACHO_EXPECTED_LENGTH - TACHO_FRAME_LENGTH)
+#define TACHO_ZERO_PADDING_LENGTH			(TACHO_EXPECTED_LENGTH - TACHO_DENOISE_LENGTH)
 #define TACHO_ESTIMATION_HALF_RANGE			(TACHO_EXPECTED_LENGTH >> 6)	// About ~ 125 Hz
 #define TACHO_ESTIMATION_RANGE				(TACHO_EXPECTED_LENGTH >> 5)	// The range to find the best Frequency, about ~250Hz precision
 // The audio buffer size is in int16_t size
 #define TACHO_AUDIO_BUFFER_SIZE				(TACHO_FRAME_LENGTH * 50)		// This means that the audio buffer can store 50 audio frames
-
 #define TACHO_INDEX_TO_FREQ_COEF			(((float)(TACHO_SAMPLING_FREQ >> 1)) / ((float) TACHO_FFT_OUT_LENGTH))
 #define TACHO_FREQ_TO_INDEX_COEF			(1 / TACHO_INDEX_TO_FREQ_COEF)
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
 	int32_t size;
 
 #ifdef BUFFER_DEBUG
-	FILE* audioFile;
+FILE* audioFile;
 #endif
 } Tacho_Buffer_t;
 
@@ -61,6 +61,8 @@ typedef struct {
 	int32_t currEndFreq;
 	bool newXInitialized;
 	void* wavelets_inst;
+	void* denoise_inst;
+
 } Tacho_t;
 
 #endif /* TACHOMETER_DEFS_H_ */
