@@ -70,11 +70,16 @@ int main(void)
 	Tachometer_Init(tacho_inst);
 	Tachometer_Config(tacho_inst, estimatedFreq);
 
+	// Test the FFT Out
+	float* fft_out_magnitude = (float*) malloc(1000 * sizeof(float));
+	float max;
+
 	int32_t i;
 	for (i = 0; i < LOOP_NUM; i++) {
 		Tachometer_Push(tacho_inst, &(inAudio[i * TACHO_FRAME_LENGTH]),
 				TACHO_FRAME_LENGTH);
 		float ret = Tachometer_Process(tacho_inst);
+		max = Tachometer_FFT_Out(tacho_inst, 0, 1000, 1000, fft_out_magnitude);
 		if (ret > 0.0f) {
 			printf("Loop %d: Result frequency: %f\n", i + 1, ret);
 		} else {

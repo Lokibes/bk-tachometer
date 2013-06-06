@@ -82,8 +82,6 @@ int32_t Tachometer_Denoise_Process(void* denoiser, int16_t* inAudio,
 							* TACHO_DENOISE_HALF_LENGTH),
 			denoise_inst->outWavelets.end(), fftIn);
 
-	denoise_inst->inWavelets.clear();
-	denoise_inst->outWavelets.clear();
 	for (int i = TACHO_DENOISE_HALF_LENGTH; i < TACHO_DENOISE_LENGTH; i++) {
 		denoise_inst->inWavelets.push_back((float) inAudio[i]);
 	}
