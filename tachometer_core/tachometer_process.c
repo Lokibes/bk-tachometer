@@ -173,14 +173,15 @@ float Tachometer_Process(void* tacho) {
 	int16_t* inAudio;
 	Tacho_Buffer_Pull(tacho_inst->audioBuffer, &inAudio);
 
-//	float* fftIn = tacho_inst->fft_in;
-//	int kk;
-//	for (kk = 0; kk < TACHO_DENOISE_LENGTH; kk++) {
-//		fftIn[kk] = (float) inAudio[kk];
-//	}
+	// Denoise the inAudio and copy the result to the fft_in array
+//	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio,
+//			tacho_inst->fft_in);
 
-	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio,
-			tacho_inst->fft_in);
+	float* fftIn = tacho_inst->fft_in;
+	int kk;
+	for (kk = 0; kk < TACHO_DENOISE_LENGTH; kk++) {
+		fftIn[kk] = (float) inAudio[kk];
+	}
 
 	// Do the FFT
 	int i;

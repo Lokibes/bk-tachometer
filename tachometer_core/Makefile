@@ -3,7 +3,7 @@ SYSROOT := /home/oneadmin/android-ndk-r8e/platforms/android-8/arch-arm
 ABI := -marm -march=armv7-a -mfloat-abi=softfp
 VECTORIZE_OPTS := -ftree-vectorize -ftree-vectorizer-verbose=2
 CFLAGS  := -c -O3 $(VECTORIZE_OPTS) -fsingle-precision-constant -Warmcc,--cpu=Cortex-A9,--fpu=VFPv3,--diag_warning=optimizations,--c99 --sysroot=$(SYSROOT) $(ABI)
-CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -c -O3 $(VECTORIZE_OPTS) -fsingle-precision-constant -std=gnu++0x --sysroot=$(SYSROOT)
+CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu++0x -c --sysroot=$(SYSROOT)
 MORE_INCLUDES := -I/mnt/ramdisk/Thesis/fftw3_cortex_a9/include -I./include -I./wavelets \
                  -I/mnt/ramdisk/Softfoundry/trunk/doubango/thirdparties/android/include/webrtc
 CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.7/include \

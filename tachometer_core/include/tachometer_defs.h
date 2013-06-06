@@ -18,7 +18,7 @@
 #define TACHO_WORD16_MAX       				32767
 #define TACHO_FRAME_LENGTH					1280		// 1280 samples per frame (80 ms)
 #define TACHO_DENOISE_LENGTH				(1 << 10)	// 1024 samples
-#define TACHO_DENOISE_HALF_LENGTH			(TACHO_DENOISE_LENGTH >> 1)
+#define TACHO_DENOISE_HALF_LENGTH			(TACHO_DENOISE_LENGTH >> 1)	// 512 samples
 #define TACHO_EXPECTED_LENGTH				(1 << 12)		// 2 ^ 12 values
 #define TACHO_FFT_IN_LENGTH					TACHO_EXPECTED_LENGTH
 #define TACHO_FFT_OUT_LENGTH				((TACHO_EXPECTED_LENGTH >> 1) + 1)
