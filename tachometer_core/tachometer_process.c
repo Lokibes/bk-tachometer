@@ -5,6 +5,9 @@
  *      Author: Minh Luan
  */
 
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
 #include "tachometer_defs.h"
 #include "tachometer_library.h"
 #include "tachometer_history.h"
@@ -12,16 +15,15 @@
 #include "fftw3.h"
 #include "tachometer_wavelet1d.h"
 #include "tachometer_wavelet_denoiser.h"
-#include <stdlib.h>
-#include <math.h>
-#include <stdbool.h>
+#include "tachometer_hanning.h"
 
 // Create
 void* Tachometer_Create() {
 	Tacho_t* tacho_inst = (Tacho_t*) malloc(sizeof(Tacho_t));
 
 	Tacho_History_Create(&(tacho_inst->tacho_history_inst));
-	tacho_inst->fft_in = fftwf_malloc(sizeof(float) * TACHO_FFT_IN_LENGTH);
+	tacho_inst->fft_in = (float*) fftwf_malloc(
+			sizeof(float) * TACHO_FFT_IN_LENGTH);
 	tacho_inst->fft_out = fftwf_malloc(
 			sizeof(fftwf_complex) * TACHO_FFT_IN_LENGTH);
 	tacho_inst->fft_out_magnitude = (float*) malloc(
@@ -52,7 +54,7 @@ int32_t Tachometer_Init(void* tacho) {
 
 	// Zero padding the tacho_inst->fft_in
 	int i;
-	for (i = TACHO_FRAME_LENGTH; i < TACHO_EXPECTED_LENGTH; i++) {
+	for (i = TACHO_DENOISE_LENGTH; i < TACHO_EXPECTED_LENGTH; i++) {
 		fft_in[i] = 0.0f;
 	}
 
@@ -164,6 +166,7 @@ float Tachometer_Process(void* tacho) {
 	if (tacho_inst == NULL) {
 		return -1.0f;
 	}
+	int i;
 
 	if (tacho_inst->audioBuffer->size < TACHO_FRAME_LENGTH) {
 		return -2.0f; // There is not enough data to process
@@ -173,18 +176,20 @@ float Tachometer_Process(void* tacho) {
 	int16_t* inAudio;
 	Tacho_Buffer_Pull(tacho_inst->audioBuffer, &inAudio);
 
-	// Denoise the inAudio and copy the result to the fft_in array
-//	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio,
-//			tacho_inst->fft_in);
-
+	// Denoise the audio
 	float* fftIn = tacho_inst->fft_in;
-	int kk;
-	for (kk = 0; kk < TACHO_DENOISE_LENGTH; kk++) {
-		fftIn[kk] = (float) inAudio[kk];
+	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio, fftIn);
+//	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
+//		fftIn[i] = (float) inAudio[i];
+//	}
+
+	// Hanning window
+	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
+		fftIn[i] = fftIn[i] * hanning_window_1024[i];
 	}
 
 	// Do the FFT
-	int i;
+
 	fftwf_execute(tacho_inst->plan_forward);
 	float* restrict fft_out_magnitude = tacho_inst->fft_out_magnitude;
 	fftwf_complex* restrict fft_out = tacho_inst->fft_out;

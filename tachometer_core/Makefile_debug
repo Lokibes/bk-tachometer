@@ -5,13 +5,13 @@ CC := arm-linux-androideabi-gcc
 CPP := arm-linux-androideabi-g++
 CFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu99 -c --sysroot=$(SYSROOT)
 CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu++0x -c --sysroot=$(SYSROOT)
-CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.7/include \
-                     -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.7/libs/armeabi-v7a/include
+CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/include \
+                     -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a/include
                      
 CLDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/Thesis/fftw3_cortex_a9/lib \
             -lfftw3f -lm
 CPPLDFLAGS := --sysroot=$(SYSROOT) \
-              -L/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.7/libs/armeabi-v7a \
+              -L/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a \
               -lgnustl_static
 #DEBUG_FLAGS := -DBUFFER_DEBUG
 DEBUG_FLAGS := -DTACHO_DEBUG
