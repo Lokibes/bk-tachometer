@@ -48,7 +48,7 @@ public class DemoUIActivity extends Activity implements
 	/*
 	 * Defines some necessary constants
 	 */
-	private static final int TIME_INTERVAL = 40; // The time in milliseconds
+	private static final int TIME_INTERVAL = 80; // The time in milliseconds
 	private static final int UI_UPDATE_INTERVAL = 500; // The time in
 														// milliseconds
 
@@ -62,6 +62,7 @@ public class DemoUIActivity extends Activity implements
 
 	// The timer counter to update UI
 	private int uiCounter = 0;
+	private int toProcess = 0;
 
 	// The lock to make UI thread and audio recording thread working well
 	private final Lock lock = new ReentrantLock();
@@ -145,7 +146,7 @@ public class DemoUIActivity extends Activity implements
 		rpm = (SeekBar) findViewById(R.id.seekBar);
 		rpm.setOnSeekBarChangeListener(this);
 		rpm.setOnTouchListener(this);
-		//rpm.setMax(450);
+		rpm.setMax(1000);
 
 		new Random();
 		isUpdateNeeded = false;
@@ -277,10 +278,9 @@ public class DemoUIActivity extends Activity implements
 	@Override
 	public boolean onTouch(View view, MotionEvent me) {
 		// TODO Auto-generated method stub
-		notifier.setText("Estimated frequency: "
-				+ Float.toString(fftOutArray[((SeekBar)view).getProgress()]) + " Hz");
-		
+		notifier.setText("Expectative speed: " + ((SeekBar)view).getProgress());
 		notifier.show();
+		
 		return false;
 	}
 	
@@ -461,8 +461,8 @@ public class DemoUIActivity extends Activity implements
 					if (isUpdateNeeded) {
 						uiCounter += TIME_INTERVAL;
 						if (uiCounter > UI_UPDATE_INTERVAL) {
+						
 							uiCounter = uiCounter % TIME_INTERVAL;
-							
 							lock.lock();
 							
 							try {
@@ -476,39 +476,46 @@ public class DemoUIActivity extends Activity implements
 			});
 
 			if (isRecording) {
+				int samples = 2;
+				toProcess = (toProcess + 1) % samples;
+				
 				if (isMeasuring)	{
 					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
-						int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
-						jTach.jTachPush(mAudioFrame, nRead);
-						int processResult = (int) jTach.jTachProcess();
-						lock.lock();
-						try {
-							currentRPM = processResult;
-						} finally {
-							lock.unlock();
-						}
-						
+						if (toProcess == 0)	{
+							int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
+							jTach.jTachPush(mAudioFrame, nRead);
+							int processResult = (int) jTach.jTachProcess();
+							lock.lock();
+							try {
+								currentRPM = processResult;
+							} finally {
+								lock.unlock();
+							}
+						}						
 					}
 					
 					// For debug mode
 					else {
-						mAudioFrame.position(0);
-						mAudioFrame.put(audioDataInBytes, seekPos,
-								AUDIO_BUFFER_SIZE);
-						seekPos += AUDIO_BUFFER_SIZE;
-						if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
-							seekPos = 0;
-						}
-						
-						jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
-						int processResult = (int) jTach.jTachProcess();
-						
-						lock.lock();
-						
-						try {
-							currentRPM = processResult;
-						} finally {
-							lock.unlock();
+						if (toProcess == 0)	{
+							mAudioFrame.clear();
+							mAudioFrame.position(0);
+							mAudioFrame.put(audioDataInBytes, seekPos,
+									AUDIO_BUFFER_SIZE);
+							seekPos += AUDIO_BUFFER_SIZE;
+							if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
+								seekPos = 0;
+							}
+							
+							jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
+							int processResult = (int) jTach.jTachProcess();
+							
+							lock.lock();
+							
+							try {
+								currentRPM = processResult;
+							} finally {
+								lock.unlock();
+							}
 						}
 					} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false)
 				}
@@ -521,7 +528,8 @@ public class DemoUIActivity extends Activity implements
 					// TODO: Why must I process to get things that I need for the processing?
 					jTach.jTachProcess();
 					
-					if (uiCounter % 200 == 0) {
+					//if (uiCounter % 200 == 0) {
+					if (toProcess == 1) {
 						int width = seekView.getWidth();
 						int height = seekView.getHeight();
 	
