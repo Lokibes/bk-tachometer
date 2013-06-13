@@ -66,6 +66,7 @@ public class ProfileActivity extends Activity implements OnClickListener	{
 		    
 		    // TODO Check duplicate item before adding
 		    Profile p = new Profile(name, avatar, minRPM, maxRPM, numBlade);
+		    p.name = "???";
 		}
 		
 		pw_adapter.currentPos = -1;
