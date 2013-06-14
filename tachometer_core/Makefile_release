@@ -1,18 +1,18 @@
 CONFIG_FILE := arm_linux_config.xml
-SYSROOT := /home/oneadmin/android-ndk-r8e/platforms/android-8/arch-arm
+SYSROOT := /home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm
 ABI := -marm -march=armv7-a -mfloat-abi=softfp
 VECTORIZE_OPTS := -ftree-vectorize -ftree-vectorizer-verbose=2
 CFLAGS  := -c -O3 $(VECTORIZE_OPTS) -fsingle-precision-constant -Warmcc,--cpu=Cortex-A9,--fpu=VFPv3,--diag_warning=optimizations,--c99 --sysroot=$(SYSROOT) $(ABI)
 CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O3 $(VECTORIZE_OPTS) -fsingle-precision-constant -std=gnu++0x -c --sysroot=$(SYSROOT)
 MORE_INCLUDES := -I/mnt/ramdisk/Thesis/fftw3_cortex_a9/include -I./include -I./wavelets \
                  -I/mnt/ramdisk/Softfoundry/trunk/doubango/thirdparties/android/include/webrtc
-CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/include \
-                     -I/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a/include
+CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/include \
+                     -I/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a/include
                      
 CLDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/Thesis/fftw3_cortex_a9/lib \
             -lfftw3f -lm
 CPPLDFLAGS := --sysroot=$(SYSROOT) \
-              -L/home/oneadmin/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a \
+              -L/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a \
               -lgnustl_static
 #FAST_MATH := -ffast-math
 FAST_MATH :=
@@ -33,8 +33,7 @@ CPP := arm-linux-androideabi-g++
 ################################################################################
 
 TARGET := libtachometer_core_armv7_a_cortex_a9.a
-SRCS_C := max_absolute_16_c.c \
-		  tachometer_history.c \
+SRCS_C := tachometer_history.c \
 		  tachometer_audio_buffer.c \
 		  tachometer_process.c
 		

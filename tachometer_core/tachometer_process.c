@@ -22,6 +22,7 @@ void* Tachometer_Create() {
 	Tacho_t* tacho_inst = (Tacho_t*) malloc(sizeof(Tacho_t));
 
 	Tacho_History_Create(&(tacho_inst->tacho_history_inst));
+	tacho_inst->denoisedAudio = (float*) malloc(TACHO_DENOISE_LENGTH * sizeof(float));
 	tacho_inst->fft_in = (float*) fftwf_malloc(
 			sizeof(float) * TACHO_FFT_IN_LENGTH);
 	tacho_inst->fft_out = fftwf_malloc(
@@ -104,6 +105,7 @@ int32_t Tachometer_Free(void* tacho) {
 	Tacho_Buffer_Free(tacho_inst->audioBuffer);
 	Tachometer_Wavelet_Free(tacho_inst->wavelets_inst);
 	Tachometer_Denoise_Free(tacho_inst->denoise_inst);
+	free(tacho_inst->denoisedAudio);
 	fftwf_free(tacho_inst->fft_in);
 	fftwf_free(tacho_inst->fft_out);
 	fftwf_destroy_plan(tacho_inst->plan_forward);
@@ -177,19 +179,26 @@ float Tachometer_Process(void* tacho) {
 	Tacho_Buffer_Pull(tacho_inst->audioBuffer, &inAudio);
 
 	// Denoise the audio
+	float* denoisedAudio = tacho_inst->denoisedAudio;
 	float* fftIn = tacho_inst->fft_in;
-	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio, fftIn);
+//	Tachometer_Denoise_Process(tacho_inst->denoise_inst, inAudio, denoisedAudio);
+
+	// Auto correlation to denoise more
+	for (i = 0; i < TACHO_DENOISE_LENGTH; i ++) {
+		denoisedAudio[i] = (float) inAudio[i];
+	}
+	Tachometer_AutoCorrelation(denoisedAudio, fftIn);
+
 //	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
 //		fftIn[i] = (float) inAudio[i];
 //	}
 
-	// Hanning window
-	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
-		fftIn[i] = fftIn[i] * hanning_window_1024[i];
-	}
+//	// Hanning window
+//	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
+//		fftIn[i] = fftIn[i] * hanning_window_1024[i];
+//	}
 
 	// Do the FFT
-
 	fftwf_execute(tacho_inst->plan_forward);
 	float* restrict fft_out_magnitude = tacho_inst->fft_out_magnitude;
 	fftwf_complex* restrict fft_out = tacho_inst->fft_out;

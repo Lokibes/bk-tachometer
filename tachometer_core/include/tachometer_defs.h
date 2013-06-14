@@ -44,6 +44,7 @@ FILE* audioFile;
 
 typedef struct {
 	Tacho_History_t* tacho_history_inst;
+	float* denoisedAudio;
 	float* fft_in;
 	fftwf_complex* fft_out;
 	float* fft_out_magnitude;
