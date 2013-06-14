@@ -4,6 +4,7 @@
 #include "tachometer_defs.h"
 
 #define INDEX_TO_FREQ	(((float)TACHO_HALF_SAMPLING_FREQ) / ((float)(TACHO_FFT_OUT_LENGTH - 1)))
+#define TACHO_W32_MUL(a, b) ((int32_t)(((int32_t)a)*((int32_t)b)))
 
 // Return the maximum absolute 16 bit value in an array
 int32_t Tachometer_MaxAbsolute16C(int16_t* vector);
@@ -108,7 +109,8 @@ static __inline int Tachometer_NormW32(int32_t a) {
 
 // Index of maximum value in a floating point vector.
 // Imply that the length of vector is TACHO_EXPECTED_LENGTH
-static __inline float Tachometer_MaxFrequency(float* vector, int32_t beginIndex) {
+static __inline float Tachometer_MaxFrequency(float* vector,
+		int32_t beginIndex) {
 	int i = 0, index = 0;
 	float maximum = 0.0f;
 	for (i = 0; i < TACHO_ESTIMATION_RANGE; i++) {
@@ -158,6 +160,23 @@ static __inline void Tachometer_Interpolation(float* x, float* y, int size,
 		}
 	}
 	*maxNum = maxNumber;
+}
+
+// To make the auto correlation
+static __inline void Tachometer_AutoCorrelation(float* restrict in_vector,
+		float* restrict result) {
+	float sum;
+	int32_t i = 0, j = 0;
+
+	// Perform the actual correlation calculation.
+	for (i = 0; i < TACHO_DENOISE_LENGTH; i++) {
+		sum = 0.0f;
+		for (j = 0; j < TACHO_DENOISE_LENGTH - i; j++) {
+			sum += ((in_vector[j] * in_vector[i + j]));
+		}
+		result[TACHO_DENOISE_LENGTH + i - 1] = sum;
+		result[TACHO_DENOISE_LENGTH - i - 1] = sum;
+	}
 }
 
 #endif /* TACHOMETER_LIBRARY_ */
