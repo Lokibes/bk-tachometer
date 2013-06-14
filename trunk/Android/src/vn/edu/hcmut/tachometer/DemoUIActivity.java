@@ -72,6 +72,9 @@ public class DemoUIActivity extends Activity implements
 
 	// The floating point array for drawing the spectrum
 	private float fftOutArray[] = null;
+	
+	// The floating point array for drawing the temporary results chart
+	private float resultArray[] = null;
 
 	/*
 	 * The audio buffer for reading the audio recorded from the microphone
@@ -104,6 +107,7 @@ public class DemoUIActivity extends Activity implements
 
 	// For debug purpose
 	private byte[] audioDataInBytes;
+	private int tempResultPos;
 	private int seekPos;
 	private int audioDataLengthInBytes;
 	float maxFFT = -1.0f;
@@ -168,6 +172,7 @@ public class DemoUIActivity extends Activity implements
 			}
 			
 			seekPos = 0;
+			tempResultPos = 0;
 		} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)
 		
 		// This observe the views and tell us whether the view is fully-displayed on screen or not,
@@ -304,6 +309,9 @@ public class DemoUIActivity extends Activity implements
 	public void onClick(View button) {
 		if (!start.getText().toString().equals("STOP")) {
 			isUpdateNeeded = true;
+			if (isSeeking)	{
+				isSeeking = false;
+			}
 
 			// Starting the Recorder
 			// TODO: check wether we should show the notifier
@@ -316,6 +324,7 @@ public class DemoUIActivity extends Activity implements
 
 			recorder.startRecording();
 			isRecording = true;
+			isMeasuring = true;
 
 			// Reset the currentRPM
 			currentRPM = 0;
@@ -403,6 +412,7 @@ public class DemoUIActivity extends Activity implements
 			
 			rpm.setEnabled(true);
 			isSeeking = true;
+			isMeasuring = false;
 		}
 	}
 
@@ -485,11 +495,45 @@ public class DemoUIActivity extends Activity implements
 							int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 							jTach.jTachPush(mAudioFrame, nRead);
 							int processResult = (int) jTach.jTachProcess();
+							
 							lock.lock();
+							
 							try {
 								currentRPM = processResult;
 							} finally {
 								lock.unlock();
+							}
+							
+							int pivots = CONFIGURES_FOR_DEBUGGING_PURPOSE.pivots;
+							
+							if (resultArray == null) {
+								// Create new array
+								resultArray = new float[pivots];
+								for (int i = 0; i < pivots; i ++) {
+									resultArray[i] = 0.0f;
+								}
+							}
+							
+							else	{
+								for (int i = 0; i < pivots - 1; i ++) {
+									resultArray[i] = resultArray[i+1];
+								}
+								
+								Random rnd = new Random();
+								//resultArray[pivots - 1] = currentRPM;
+						        resultArray[pivots - 1] = rnd.nextFloat() * 450.0f;
+							}
+							
+							for (int i = 0; i < pivots; i ++) {
+								chartView.drawLine(i, resultArray[i]);
+							}
+							
+							chartView.requestRender();
+							
+							android.util.Log.e("MEASURING", "results = ");
+							
+							for (int i = 0; i < pivots; i ++) {
+								android.util.Log.e(Integer.toString(i), Float.toString(resultArray[i]));
 							}
 						}						
 					}
@@ -541,7 +585,7 @@ public class DemoUIActivity extends Activity implements
 							fftOutArray = new float[width];
 						}
 						
-						android.util.Log.e("PRE-FFT", "" + width + " " + height);
+						//android.util.Log.e("PRE-FFT", "" + width + " " + height);
 						maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width, fftOutArray);
 	
 						if (maxFFT >= 0) { // No error
