@@ -3,6 +3,7 @@ package vn.edu.hcmut.tachometer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -99,6 +100,7 @@ class Chart	{
        500.0f, 500.0f
     };*/
     
+    int pivots = CONFIGURES_FOR_DEBUGGING_PURPOSE.pivots;
     public float lineCoords[];
     
     //private final int vertexCount = triangleCoords.length / COORDS_PER_VERTEX;
@@ -115,8 +117,13 @@ class Chart	{
     
     public Chart() {
     	//Log.e("Chart", "" + width + " " + height);
-    	lineCoords = new float[1000];
+    	// Update the temp result in 5 latest steps.
+    	
+    	Random rnd = new Random();
+    	
+    	lineCoords = new float[pivots];
     	for (int i = 0; i < lineCoords.length; i ++)	{
+    		//lineCoords[i] = rnd.nextFloat() * 450.0f;
     		lineCoords[i] = 0.0f;
     	}
     	
@@ -185,9 +192,13 @@ class Chart	{
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         
-        for (int i = 0; i < lineCoords.length; i ++)	{
+        for (int i = 0; i < lineCoords.length; i += lineCoords.length/pivots)	{
+        	android.util.Log.e("DRAW", Float.toString(lineCoords[i]));
+        }
+        
+        for (int i = 0; i < pivots - 1; i ++)	{
         	vertexBuffer.clear();
-        	vertexBuffer.put(new float[]{ i, 250 - lineCoords[i], i, 250 + lineCoords[i] });
+        	vertexBuffer.put(new float[]{ i * width/(pivots-1), lineCoords[i], (i + 1) * width/(pivots-1), lineCoords[(i + 1) % lineCoords.length] });
         	/*if (i == 0)	{
         		vertexBuffer.clear();
         		vertexBuffer.put(new float[]{ i, 0, i, 500 });
