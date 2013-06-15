@@ -20,6 +20,9 @@ public class SeekViewRenderer implements GLSurfaceView.Renderer {
         // Set the background frame color
     	GLES20.glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     	
+    	GLES20.glLineWidth(1.5f);
+    	unused.glEnable(GL10.GL_MULTISAMPLE);
+    	
         //mTriangle = new Triangle();
     	//Log.e("onSurfaceCreated", "" + width + " " + height);
     	//if (null == mChart)	{
@@ -189,9 +192,12 @@ class SeekChart	{
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         
+        //for (int i = 0; i < lineCoords.length; i ++)	{
         for (int i = 0; i < lineCoords.length; i ++)	{
         	vertexBuffer.clear();
-        	vertexBuffer.put(new float[]{ i, 1, i, lineCoords[i] });
+        	//vertexBuffer.put(new float[]{ i, 1, i, lineCoords[i] });
+        	vertexBuffer.put(new float[]{ i, lineCoords[i], i+1, lineCoords[(i+1) % lineCoords.length] });
+        	
         	/*if (i == 0)	{
         		vertexBuffer.clear();
         		vertexBuffer.put(new float[]{ i, 0, i, 500 });
