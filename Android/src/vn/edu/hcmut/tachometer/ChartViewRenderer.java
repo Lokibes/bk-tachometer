@@ -31,6 +31,13 @@ public class ChartViewRenderer implements GLSurfaceView.Renderer {
 
         // Draw background color
     	GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+    	
+    	GLES20.glLineWidth(1.5f);
+    	unused.glEnable(GL10.GL_MULTISAMPLE);
+    	//GLES20.glEnable(GLES20.GL_BLEND);
+    	//GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+    	//unused.glEnable(GL10.GL_LINE_SMOOTH); 
+    	//unused.glHint(GL10.GL_LINE_SMOOTH_HINT, GL10.GL_NICEST);
 
         // Draw
         //mTriangle.draw();

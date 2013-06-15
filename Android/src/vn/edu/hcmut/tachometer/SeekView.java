@@ -29,6 +29,9 @@ public class SeekView extends GLSurfaceView {
         // Create an OpenGL ES 2.0 context.
         setEGLContextClientVersion(2);
 
+     // For multi-sampling, including anti-aliasing
+        this.setEGLConfigChooser(new MultisampleConfigChooser());
+        
         // Set the Renderer for drawing on the GLSurfaceView
         //Log.e("ChartView", "" + this.getWidth() + " " + this.getHeight());
         // Width, height are not available yet (context is uncompleted)
@@ -46,7 +49,10 @@ public class SeekView extends GLSurfaceView {
 		
         // Create an OpenGL ES 2.0 context.
         setEGLContextClientVersion(2);
-
+        
+        // For multi-sampling, including anti-aliasing
+        this.setEGLConfigChooser(new MultisampleConfigChooser());
+        
         // Set the Renderer for drawing on the GLSurfaceView
         myRenderer = new SeekViewRenderer();
         setRenderer(myRenderer);
