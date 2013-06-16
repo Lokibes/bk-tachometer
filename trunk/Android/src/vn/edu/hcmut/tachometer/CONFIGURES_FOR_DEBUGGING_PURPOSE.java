@@ -7,4 +7,5 @@ public class CONFIGURES_FOR_DEBUGGING_PURPOSE {
 	 */
 	public static boolean debugMode = false;
 	public static int pivots = 10;
+	public static float base = 6.0f;
 }
