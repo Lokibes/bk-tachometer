@@ -10,7 +10,7 @@
 
 #define SWIGJAVA
 
-#define TACHO_FRAME_LENGTH			640
+#define TACHO_FRAME_LENGTH			1280
 
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable

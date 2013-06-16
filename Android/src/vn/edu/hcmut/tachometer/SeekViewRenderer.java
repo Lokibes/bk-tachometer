@@ -18,6 +18,7 @@ public class SeekViewRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 
         // Set the background frame color
+    	//GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     	GLES20.glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     	
     	GLES20.glLineWidth(1.5f);
@@ -112,6 +113,7 @@ class SeekChart	{
 
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    //float color[] = { 1.0f, 1.0f, 0.0f, 1.0f };
 
     public void setSize(int width, int height)	{
     	android.util.Log.e("setSize", width + " " + height);

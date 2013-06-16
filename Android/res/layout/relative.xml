@@ -34,6 +34,15 @@
         android:layout_alignParentTop="true"
         android:keepScreenOn="true" />
     
+    <ImageView
+        android:id="@+id/imgBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/background"
+        
+        android:layout_above="@+id/buttonTop" />
+    
     <vn.edu.hcmut.tachometer.SeekView
         android:id="@+id/seekView"
         android:layout_width="wrap_content"

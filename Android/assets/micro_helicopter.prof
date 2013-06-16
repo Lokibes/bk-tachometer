@@ -1,6 +1,0 @@
-<profile>
-	<name>Microsized Helicopter</name>
-	<minRPM>0</minRPM>
-	<maxRPM>1000</maxRPM>
-	<numBlade>3</numBlade>
-</profile>
