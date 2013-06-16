@@ -188,7 +188,7 @@ public class DemoUIActivity extends Activity implements
 	        public void onGlobalLayout() {
 	            ///getLocationOnScreen here
 	        	if (seekView.getVisibility() == View.VISIBLE)	{
-	        		rpm.setMax(seekView.getWidth());
+	        		//rpm.setMax(seekView.getWidth());
 	        		
 	        		// Initialize the Tachometer
 	    			jTach.jTachInit();
@@ -305,7 +305,7 @@ public class DemoUIActivity extends Activity implements
 
 			// Initialize the Tachometer
 			jTach.jTachInit();
-			jTach.jTachConfig(rpm.getProgress());
+			jTach.jTachConfig(rpm.getProgress() + minValue);
 
 			recorder.startRecording();
 			isRecording = true;
@@ -500,7 +500,7 @@ public class DemoUIActivity extends Activity implements
 								// Create new array
 								resultArray = new float[pivots];
 								for (int i = 0; i < pivots; i ++) {
-									resultArray[i] = 0.0f;
+									resultArray[i] = CONFIGURES_FOR_DEBUGGING_PURPOSE.base;
 								}
 							}
 							
@@ -509,9 +509,9 @@ public class DemoUIActivity extends Activity implements
 									resultArray[i] = resultArray[i+1];
 								}
 								
-								Random rnd = new Random();
-								resultArray[pivots - 1] = processResult;
+								//Random rnd = new Random();
 						        //resultArray[pivots - 1] = rnd.nextFloat() * 450.0f;
+								resultArray[pivots - 1] = processResult;
 							}
 							
 							for (int i = 0; i < pivots; i ++) {
@@ -576,7 +576,7 @@ public class DemoUIActivity extends Activity implements
 						}
 						
 						//android.util.Log.e("PRE-FFT", "" + width + " " + height);
-						maxFFT = jTach.jTachFFTOut(0, rpm.getMax(), width, fftOutArray);
+						maxFFT = jTach.jTachFFTOut(0, rpm.getMax() + minValue, width, fftOutArray);
 	
 						if (maxFFT >= 0) { // No error
 							// Draw the spectrum here

@@ -211,7 +211,7 @@ class Chart	{
     	lineCoords = new float[pivots];
     	for (int i = 0; i < lineCoords.length; i ++)	{
     		//lineCoords[i] = rnd.nextFloat() * 450.0f;
-    		lineCoords[i] = 0.0f;
+    		lineCoords[i] = 2.0f;
     	}
     	
         // initialize vertex byte buffer for shape coordinates
@@ -296,7 +296,7 @@ class Chart	{
         
         for (int i = 0; i < pivots - 1; i ++)	{
         	vertexBuffer.clear();
-        	vertexBuffer.put(new float[]{ i * width/(pivots-1), lineCoords[i], (i + 1) * width/(pivots-1), lineCoords[(i + 1) % lineCoords.length] });
+        	vertexBuffer.put(new float[]{ i * width/(pivots-1), lineCoords[i] + CONFIGURES_FOR_DEBUGGING_PURPOSE.base, (i + 1) * width/(pivots-1), lineCoords[(i + 1) % lineCoords.length] + CONFIGURES_FOR_DEBUGGING_PURPOSE.base });
         	
         	/*if (i == 0)	{
         		vertexBuffer.clear();
