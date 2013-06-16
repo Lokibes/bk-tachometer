@@ -97,7 +97,7 @@ class LogViewAdapter extends ArrayAdapter<Log>	{
 					android.util.Log.e("StringIndexOutOfBoundsException", "Index end = " + (logList.get(position).profile.length() - "dd_MM_yyyy - HH_mm_ss.prof".length()));
 				}
 				logholder.avatar_view.setImageBitmap(BitmapUtil.decodeSampledBitmapFromResource(logList.get(position).profile.replace("profiles", "avatars").replace(".prof", ".png"), 55, 55));
-				android.util.Log.e("DECODING", logList.get(position).profile.replace("profiles", "avatars").replace(".prof", ".png"));
+				//android.util.Log.e("DECODING", logList.get(position).profile.replace("profiles", "avatars").replace(".prof", ".png"));
 			}
 			
 			else	{

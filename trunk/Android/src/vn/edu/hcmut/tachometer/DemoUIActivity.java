@@ -25,6 +25,7 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+//import android.support.v4.widget.SearchViewCompatIcs.MySearchView;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -84,6 +85,7 @@ public class DemoUIActivity extends Activity implements
 	private String baseDir;
 
 	private Toast notifier; // a pop-up for testing purpose
+	private int minValue = 0;	// minimum value of the SeekBar
 	private SeekBar rpm; // seek bar for estimating RPM
 	private Button start; // start/stop measuring
 	private TextView rpmCal; // real-time calculated value of actual RPM
@@ -97,7 +99,7 @@ public class DemoUIActivity extends Activity implements
 	private Timer timer;
 	private boolean isUpdateNeeded = true;
 	private boolean isMeasuring = false;
-	private boolean isSeeking = true;
+	//private boolean isSeeking = true;
 
 	private AudioRecord recorder = null;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
@@ -112,6 +114,9 @@ public class DemoUIActivity extends Activity implements
 	private int audioDataLengthInBytes;
 	float maxFFT = -1.0f;
 
+	// For getting current profile's parameters
+	SharedPreferences settings;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -214,35 +219,15 @@ public class DemoUIActivity extends Activity implements
 	protected void onStart() {
 		super.onStart();
 
-		SharedPreferences test_curname = getApplicationContext()
-				.getSharedPreferences("my_pref", Context.MODE_PRIVATE);
-		android.util.Log.e("CURRENT PROF",
-				test_curname.getString("current_name", "not found"));
+		SharedPreferences settings = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+		android.util.Log.e("CURRENT PROF", settings.getString("current_name", "not found"));
 
+		android.util.Log.e("ONSTART", "Max = " + settings.getInt("max_rpm", 0));
+		
+		minValue = settings.getInt("min_rpm", 0);
+		rpm.setMax(settings.getInt("max_rpm", 10) - minValue);
+		
 		/** Adapt the seek bar and stuffs to the pre-defined settings */
-		// TODO change to the global shared pref, for the sake of the whole app
-		SharedPreferences settings = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		int heli_type = Integer.valueOf(settings.getString("heli_type", "0"));
-
-		switch (heli_type) {
-		case 0:
-			//rpm.setMax(1000);
-			Toast.makeText(this, "Standard", 5).show();
-			break;
-		case 1:
-			//rpm.setMax(300);
-			Toast.makeText(this, "Microsized", 5).show();
-			break;
-		default:
-			Toast.makeText(this,
-					"You couldn't see this cuz default = Standard Helicopter",
-					5).show();
-			break;
-		}
-
-		// notifier.setText("Just coming back...");
-		// notifier.show();
 	}
 
 	/* implements for the MENU soft-key. Android 2.3.x */
@@ -282,8 +267,7 @@ public class DemoUIActivity extends Activity implements
 	/** implements OnTouchListener */
 	@Override
 	public boolean onTouch(View view, MotionEvent me) {
-		// TODO Auto-generated method stub
-		notifier.setText("Expectative speed: " + ((SeekBar)view).getProgress());
+		notifier.setText("Expectative speed: " + (((SeekBar)view).getProgress() + minValue));
 		notifier.show();
 		
 		return false;
@@ -295,7 +279,7 @@ public class DemoUIActivity extends Activity implements
 	}
 
 	public void onStopTrackingTouch(SeekBar sb) {
-		isSeeking = false;
+		//isSeeking = false;
 	}
 
 	public void onProgressChanged(SeekBar sb, int progress, boolean b) {
@@ -309,9 +293,10 @@ public class DemoUIActivity extends Activity implements
 	public void onClick(View button) {
 		if (!start.getText().toString().equals("STOP")) {
 			isUpdateNeeded = true;
-			if (isSeeking)	{
+			
+			/*if (isSeeking)	{
 				isSeeking = false;
-			}
+			}*/
 
 			// Starting the Recorder
 			// TODO: check wether we should show the notifier
@@ -327,8 +312,13 @@ public class DemoUIActivity extends Activity implements
 			isMeasuring = true;
 
 			// Reset the currentRPM
-			currentRPM = 0;
-			rpmCal.setText(currentRPM + " RPM");
+			lock.lock();
+			try {
+				currentRPM = 0;
+				rpmCal.setText(currentRPM + " RPM");
+			} finally {
+				lock.unlock();
+			}
 
 			// Reset the UI counter
 			uiCounter = 0;
@@ -411,7 +401,7 @@ public class DemoUIActivity extends Activity implements
 			start.setTextColor(Color.BLACK);
 			
 			rpm.setEnabled(true);
-			isSeeking = true;
+			//isSeeking = true;
 			isMeasuring = false;
 		}
 	}
@@ -473,8 +463,8 @@ public class DemoUIActivity extends Activity implements
 						if (uiCounter > UI_UPDATE_INTERVAL) {
 						
 							uiCounter = uiCounter % TIME_INTERVAL;
-							lock.lock();
 							
+							lock.lock();
 							try {
 								rpmCal.setText(currentRPM + " RPM");
 							} finally {
@@ -520,8 +510,8 @@ public class DemoUIActivity extends Activity implements
 								}
 								
 								Random rnd = new Random();
-								//resultArray[pivots - 1] = currentRPM;
-						        resultArray[pivots - 1] = rnd.nextFloat() * 450.0f;
+								resultArray[pivots - 1] = processResult;
+						        //resultArray[pivots - 1] = rnd.nextFloat() * 450.0f;
 							}
 							
 							for (int i = 0; i < pivots; i ++) {
@@ -530,11 +520,11 @@ public class DemoUIActivity extends Activity implements
 							
 							chartView.requestRender();
 							
-							android.util.Log.e("MEASURING", "results = ");
+							/*android.util.Log.e("MEASURING", "results = ");
 							
 							for (int i = 0; i < pivots; i ++) {
 								android.util.Log.e(Integer.toString(i), Float.toString(resultArray[i]));
-							}
+							}*/
 						}						
 					}
 					
@@ -565,7 +555,7 @@ public class DemoUIActivity extends Activity implements
 				}
 
 				else
-				if (isSeeking)	{
+				if (!isMeasuring/*isSeeking*/)	{
 					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 					jTach.jTachPush(mAudioFrame, nRead);
 					
@@ -586,7 +576,7 @@ public class DemoUIActivity extends Activity implements
 						}
 						
 						//android.util.Log.e("PRE-FFT", "" + width + " " + height);
-						maxFFT = jTach.jTachFFTOut(0, rpm.getMax() * 2, width, fftOutArray);
+						maxFFT = jTach.jTachFFTOut(0, rpm.getMax(), width, fftOutArray);
 	
 						if (maxFFT >= 0) { // No error
 							// Draw the spectrum here
