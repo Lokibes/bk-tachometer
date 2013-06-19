@@ -116,6 +116,7 @@ public class DemoUIActivity extends Activity implements
 
 	// For getting current profile's parameters
 	SharedPreferences settings;
+	private int bladeNumber = 0;	// current profile 's blade number
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -227,6 +228,7 @@ public class DemoUIActivity extends Activity implements
 		minValue = settings.getInt("min_rpm", 0);
 		rpm.setMax(settings.getInt("max_rpm", 10) - minValue);
 		
+		bladeNumber = settings.getInt("blade_num", 0);
 		/** Adapt the seek bar and stuffs to the pre-defined settings */
 	}
 
@@ -489,7 +491,7 @@ public class DemoUIActivity extends Activity implements
 							lock.lock();
 							
 							try {
-								currentRPM = processResult;
+								currentRPM = (int) (processResult * 60 / (2 * 3.14f * bladeNumber));
 							} finally {
 								lock.unlock();
 							}
