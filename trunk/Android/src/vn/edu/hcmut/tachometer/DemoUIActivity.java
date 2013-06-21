@@ -193,7 +193,7 @@ public class DemoUIActivity extends Activity implements
 	        		
 	        		// Initialize the Tachometer
 	    			jTach.jTachInit();
-	    			jTach.jTachConfig(rpm.getProgress());
+	    			jTach.jTachConfig((rpm.getProgress() + minValue) / 60);
 
 	    			recorder.startRecording();
 	    			isRecording = true;
@@ -307,7 +307,7 @@ public class DemoUIActivity extends Activity implements
 
 			// Initialize the Tachometer
 			jTach.jTachInit();
-			jTach.jTachConfig(rpm.getProgress() + minValue);
+			jTach.jTachConfig((rpm.getProgress() + minValue) / 60);
 
 			recorder.startRecording();
 			isRecording = true;
@@ -486,12 +486,14 @@ public class DemoUIActivity extends Activity implements
 						if (toProcess == 0)	{
 							int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 							jTach.jTachPush(mAudioFrame, nRead);
-							int processResult = (int) jTach.jTachProcess();
+							
+							int processResult = 0;
 							
 							lock.lock();
 							
 							try {
-								currentRPM = (int) (processResult * 60 / (2 * 3.14f * bladeNumber));
+								processResult = (int) jTach.jTachProcess();
+								currentRPM = (int) (processResult * 60 / bladeNumber);
 							} finally {
 								lock.unlock();
 							}
@@ -543,12 +545,12 @@ public class DemoUIActivity extends Activity implements
 							}
 							
 							jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
-							int processResult = (int) jTach.jTachProcess();
 							
 							lock.lock();
 							
 							try {
-								currentRPM = processResult;
+								int processResult = (int) jTach.jTachProcess();
+								currentRPM = (int) (processResult * 60 / bladeNumber);
 							} finally {
 								lock.unlock();
 							}
@@ -561,11 +563,17 @@ public class DemoUIActivity extends Activity implements
 					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
 					jTach.jTachPush(mAudioFrame, nRead);
 					
-					// TODO: Why must I process to get things that I need for the processing?
-					jTach.jTachProcess();
-					
 					//if (uiCounter % 200 == 0) {
 					if (toProcess == 1) {
+						
+						lock.lock();
+						
+						try {
+							jTach.jTachProcess();
+						} finally {
+							lock.unlock();
+						}
+						
 						int width = seekView.getWidth();
 						int height = seekView.getHeight();
 	
