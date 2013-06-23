@@ -35,6 +35,22 @@ case "$1" in
 		make &&\
 		cp -f $PROJECT_DIR/stripped/libtachometer_core_armv7_a_cortex_a9.a $JNI_DIR/libtachometer_core_armv7_a_cortex_a9.a
     ;;
+	test_neon)
+		echo "Making a test with neon version ..." &&\
+		cd $PROJECT_DIR &&\
+		cp -f ./Makefile_test_neon ./Makefile &&\
+		make clean &&\
+		make &&\
+		adb push $PROJECT_DIR/tacho_test_neon $MOBILE_DIR/tacho_test_neon
+		;;
+	test_no_neon)
+		echo "Making a test without neon version ..." &&\
+		cd $PROJECT_DIR &&\
+		cp -f ./Makefile_test_no_neon ./Makefile &&\
+		make clean &&\
+		make &&\
+		adb push $PROJECT_DIR/tacho_test_no_neon $MOBILE_DIR/tacho_test_no_neon
+		;;
   *)
     echo "Usage: build.sh {clean|deploy|debug|release}"
     exit 1
