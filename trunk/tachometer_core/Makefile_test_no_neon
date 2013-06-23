@@ -1,23 +1,25 @@
 SYSROOT := /home/oneadmin/android-ndk-r8b/platforms/android-8/arch-arm
-MORE_INCLUDES := -I/mnt/ramdisk/fftw3_cortex_a9/include -I./include -I./wavelets
+MORE_INCLUDES := -I/mnt/ramdisk/fftw3_cortex_a8_no_neon/include -I./include -I./wavelets \
+                 -I/mnt/ramdisk/Softfoundry/trunk/doubango/thirdparties/android/include/webrtc
 CC := arm-linux-androideabi-gcc
 CPP := arm-linux-androideabi-g++
-CFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu99 -c --sysroot=$(SYSROOT)
-CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a9 -O0 -g -std=gnu++0x -c --sysroot=$(SYSROOT)
+CFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a8 -O0 -std=gnu99 -c --sysroot=$(SYSROOT)
+CPPFLAGS := -mfpu=neon -marm -march=armv7-a -mfloat-abi=softfp -mtune=cortex-a8 -O0 -std=gnu++0x -c --sysroot=$(SYSROOT)
 CPP_MORE_INCLUDES := -I/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/include \
                      -I/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a/include
                      
-CLDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/fftw3_cortex_a9/lib \
+CLDFLAGS := --sysroot=$(SYSROOT) -L/mnt/ramdisk/fftw3_cortex_a8_no_neon/lib \
             -lfftw3f -lm
 CPPLDFLAGS := --sysroot=$(SYSROOT) \
-              -L/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi-v7a \
+              -L/home/oneadmin/android-ndk-r8b/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi \
               -lgnustl_static
 #DEBUG_FLAGS := -DBUFFER_DEBUG
-DEBUG_FLAGS := -DTACHO_DEBUG
+#DEBUG_FLAGS := -DTACHO_DEBUG
+DEBUG_FLAGS :=
 ################################################################################
 
-TARGET := fftw3_test
-SRCS_C := fftw3_prb.c \
+TARGET := tacho_test_no_neon
+SRCS_C := performance_test.c \
 		tachometer_history.c \
 		tachometer_audio_buffer.c \
 		tachometer_process.c
@@ -57,9 +59,10 @@ clean:
 
 %.o: %.c
 	$(CC) -MMD -MP -MF $@.d $(CFLAGS) $(DEBUG_FLAGS) $(MORE_INCLUDES) $< -o $@
+	$(CC) -MMD -MP -MF $@.d $(CFLAGS) $(DEBUG_FLAGS) $(MORE_INCLUDES) $< -S
 	
 %.o: %.cpp
 	$(CPP) -MMD -MP -MF $@.d $(CPPFLAGS) $(DEBUG_FLAGS) $(MORE_INCLUDES) $(CPP_MORE_INCLUDES) $< -o $@
 
 $(TARGET): $(OBJS)
-	$(CPP) $(OBJS_C) $(CLDFLAGS) $(OBJS_CPP) $(CPPLDFLAGS) $(MORE_INCLUDES) -o $@
+	$(CPP) $(OBJS_C) $(OBJS_CPP) $(CLDFLAGS) $(CPPLDFLAGS) $(MORE_INCLUDES) -o $@
