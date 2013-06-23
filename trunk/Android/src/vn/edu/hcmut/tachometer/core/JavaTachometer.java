@@ -27,7 +27,6 @@ public class JavaTachometer {
 	}
 
 	public float jTachProcess() {
-		android.util.Log.e("J-TACH", "Process start");
 		float resultFreq = tachometer_process.Tachometer_Process(tacho_inst);
 
 		// Error
@@ -35,8 +34,6 @@ public class JavaTachometer {
 			android.util.Log.e("J-TACH", "Process error! The error code is " + resultFreq);
 			return 0.0f;
 		}
-		
-		android.util.Log.e("J-TACH", "Process end");
 		return resultFreq;
 	}
 

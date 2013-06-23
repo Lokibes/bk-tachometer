@@ -61,7 +61,7 @@ public class ChartView extends GLSurfaceView {
 	
 	public void drawLine(float x, float y)	{
 		if (null == myRenderer.mChart)	{
-			android.util.Log.e("drawLine", "null 1");
+			//android.util.Log.e("drawLine", "null 1");
 			return;
 		}
 		
