@@ -6,6 +6,6 @@ public class CONFIGURES_FOR_DEBUGGING_PURPOSE {
 	 * measuring time. WARNING: This raw file is overwritten time to time. 
 	 */
 	public static boolean debugMode = false;
-	public static int pivots = 10;
+	public static int pivots = 100;
 	public static float base = 6.0f;
 }

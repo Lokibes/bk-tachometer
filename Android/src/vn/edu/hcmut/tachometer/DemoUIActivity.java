@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,7 +64,6 @@ public class DemoUIActivity extends Activity implements
 
 	// The timer counter to update UI
 	private int uiCounter = 0;
-	private int toProcess = 0;
 
 	// The lock to make UI thread and audio recording thread working well
 	private final Lock lock = new ReentrantLock();
@@ -73,9 +73,10 @@ public class DemoUIActivity extends Activity implements
 
 	// The floating point array for drawing the spectrum
 	private float fftOutArray[] = null;
-	
+
 	// The floating point array for drawing the temporary results chart
-	private float resultArray[] = null;
+	// private float resultArray[] = null;
+	private LinkedList<Float> resultList = null;
 
 	/*
 	 * The audio buffer for reading the audio recorded from the microphone
@@ -85,7 +86,7 @@ public class DemoUIActivity extends Activity implements
 	private String baseDir;
 
 	private Toast notifier; // a pop-up for testing purpose
-	private int minValue = 0;	// minimum value of the SeekBar
+	private int minValue = 0; // minimum value of the SeekBar
 	private SeekBar rpm; // seek bar for estimating RPM
 	private Button start; // start/stop measuring
 	private TextView rpmCal; // real-time calculated value of actual RPM
@@ -97,9 +98,11 @@ public class DemoUIActivity extends Activity implements
 
 	// Testing purpose
 	private Timer timer;
-	private boolean isUpdateNeeded = true;
+	private boolean isUpdateNeeded = false;
 	private boolean isMeasuring = false;
-	//private boolean isSeeking = true;
+	private boolean needTachoInit;
+
+	// private boolean isSeeking = true;
 
 	private AudioRecord recorder = null;
 	int read = AudioRecord.ERROR_INVALID_OPERATION;
@@ -116,8 +119,8 @@ public class DemoUIActivity extends Activity implements
 
 	// For getting current profile's parameters
 	SharedPreferences settings;
-	private int bladeNumber = 0;	// current profile 's blade number
-	
+	private int bladeNumber = 0; // current profile 's blade number
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -176,58 +179,66 @@ public class DemoUIActivity extends Activity implements
 			} catch (IOException e) {
 				android.util.Log.e("FILE-MISSED", e.toString());
 			}
-			
+
 			seekPos = 0;
 			tempResultPos = 0;
 		} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode)
-		
-		// This observe the views and tell us whether the view is fully-displayed on screen or not,
+
+		// This observe the views and tell us whether the view is
+		// fully-displayed on screen or not,
 		// for us to avoid calling UI-method with unavailable parameters.
-		ViewTreeObserver vto = ((ViewGroup)this.getWindow().getDecorView()).getViewTreeObserver();
-	    vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-	        @Override
-	        public void onGlobalLayout() {
-	            ///getLocationOnScreen here
-	        	if (seekView.getVisibility() == View.VISIBLE)	{
-	        		//rpm.setMax(seekView.getWidth());
-	        		
-	        		// Initialize the Tachometer
-	    			jTach.jTachInit();
-	    			jTach.jTachConfig((rpm.getProgress() + minValue) / 60);
+		ViewTreeObserver vto = ((ViewGroup) this.getWindow().getDecorView())
+				.getViewTreeObserver();
+		vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				// /getLocationOnScreen here
+				if (seekView.getVisibility() == View.VISIBLE) {
+					// rpm.setMax(seekView.getWidth());
 
-	    			recorder.startRecording();
-	    			isRecording = true;
-	    			isUpdateNeeded = true;
-	    			
-	    			// Reset the UI counter
-	    			uiCounter = 0;
+					// Initialize the Tachometer
+					jTach.jTachInit();
+					jTach.jTachConfig((long) convertRPMtoRPS(
+							(float) rpm.getProgress() + minValue, bladeNumber));
 
-	    			// Starting the Timer
-	    			timer = new Timer();
-	    			timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
-	    			
-	    			// Mission of this observer should end here
-	    			android.util.Log.e("Observer", "Set done!");
-	        	}
+					recorder.startRecording();
+					isRecording = true;
+					isUpdateNeeded = false;
+					needTachoInit = false;
+					isMeasuring = false;
 
-	            ViewTreeObserver obs = ((ViewGroup)DemoUIActivity.this.getWindow().getDecorView()).getViewTreeObserver();
-	            obs.removeGlobalOnLayoutListener(this);
-	        }
-	    });
+					// Reset the UI counter
+					uiCounter = 0;
+
+					// Starting the Timer
+					timer = new Timer();
+					timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
+
+					// Mission of this observer should end here
+					android.util.Log.e("Observer", "Set done!");
+				}
+
+				ViewTreeObserver obs = ((ViewGroup) DemoUIActivity.this
+						.getWindow().getDecorView()).getViewTreeObserver();
+				obs.removeGlobalOnLayoutListener(this);
+			}
+		});
 	}
 
 	/** call when come back from the settings screen. Refresh parameters */
 	protected void onStart() {
 		super.onStart();
 
-		SharedPreferences settings = getApplicationContext().getSharedPreferences("my_pref", Context.MODE_PRIVATE);
-		android.util.Log.e("CURRENT PROF", settings.getString("current_name", "not found"));
+		SharedPreferences settings = getApplicationContext()
+				.getSharedPreferences("my_pref", Context.MODE_PRIVATE);
+		android.util.Log.e("CURRENT PROF",
+				settings.getString("current_name", "not found"));
 
 		android.util.Log.e("ONSTART", "Max = " + settings.getInt("max_rpm", 0));
-		
+
 		minValue = settings.getInt("min_rpm", 0);
 		rpm.setMax(settings.getInt("max_rpm", 10) - minValue);
-		
+
 		bladeNumber = settings.getInt("blade_num", 0);
 		/** Adapt the seek bar and stuffs to the pre-defined settings */
 	}
@@ -269,25 +280,27 @@ public class DemoUIActivity extends Activity implements
 	/** implements OnTouchListener */
 	@Override
 	public boolean onTouch(View view, MotionEvent me) {
-		notifier.setText("Expectative speed: " + (((SeekBar)view).getProgress() + minValue));
+		notifier.setText("Expectative speed: "
+				+ (((SeekBar) view).getProgress() + minValue));
 		notifier.show();
-		
+
 		return false;
 	}
-	
+
 	/** implements OnSeekBarChangeListener */
 	public void onStartTrackingTouch(SeekBar sb) {
 
 	}
 
 	public void onStopTrackingTouch(SeekBar sb) {
-		//isSeeking = false;
+		// isSeeking = false;
 	}
 
 	public void onProgressChanged(SeekBar sb, int progress, boolean b) {
-		/*notifier.setText("Estimated head speed: "
-				+ Integer.toString(sb.getProgress()) + " RPM");
-		notifier.show();*/
+		/*
+		 * notifier.setText("Estimated head speed: " +
+		 * Integer.toString(sb.getProgress()) + " RPM"); notifier.show();
+		 */
 	}
 
 	/** implements OnClickListener */
@@ -295,29 +308,17 @@ public class DemoUIActivity extends Activity implements
 	public void onClick(View button) {
 		if (!start.getText().toString().equals("STOP")) {
 			isUpdateNeeded = true;
-			
-			/*if (isSeeking)	{
-				isSeeking = false;
-			}*/
-
-			// Starting the Recorder
-			// TODO: check wether we should show the notifier
-			//notifier.setText(String.valueOf(AUDIO_BUFFER_MAX_SIZE));
-			//notifier.show();
-
-			// Initialize the Tachometer
-			jTach.jTachInit();
-			jTach.jTachConfig((rpm.getProgress() + minValue) / 60);
-
-			recorder.startRecording();
+			uiCounter = 0;
 			isRecording = true;
 			isMeasuring = true;
 
+			// Initialize the Tachometer
 			// Reset the currentRPM
 			lock.lock();
 			try {
 				currentRPM = 0;
 				rpmCal.setText(currentRPM + " RPM");
+				needTachoInit = true;
 			} finally {
 				lock.unlock();
 			}
@@ -329,21 +330,10 @@ public class DemoUIActivity extends Activity implements
 			rpm.setEnabled(false);
 			start.setText("STOP");
 			start.setTextColor(Color.RED);
-
-			// Starting the Timer
-			timer = new Timer();
-			timer.schedule(new UpdateTimeTask(), 0, TIME_INTERVAL);
 		} else {
-			//isRecording = false;
-			//recorder.stop();
+			// Reset the result list
+			resultList = null;
 			
-			// It cancel only the SCHEDULED tasks, not the RUNNING ones!
-			// So we must use "isUpdateNeeded" flag to prevent its stupid behavior =.=
-			//isUpdateNeeded = false;
-			
-			timer.cancel();
-			timer.purge();
-
 			// Saving log if "auto_save_log" is set
 			SharedPreferences settings = PreferenceManager
 					.getDefaultSharedPreferences(this);
@@ -367,8 +357,10 @@ public class DemoUIActivity extends Activity implements
 
 				if (list_file.length != 0) {
 					for (int i = 0; i < list_file.length; i++) {
-						if (list_file[i].getName().startsWith(
-								global.getString("current_name", "-not found-"))) {
+						if (list_file[i].getName()
+								.startsWith(
+										global.getString("current_name",
+												"-not found-"))) {
 							prof = list_file[i].getAbsolutePath();
 							break;
 						}
@@ -401,10 +393,16 @@ public class DemoUIActivity extends Activity implements
 
 			start.setText("MEASURE");
 			start.setTextColor(Color.BLACK);
-			
+
 			rpm.setEnabled(true);
-			//isSeeking = true;
-			isMeasuring = false;
+
+			lock.lock();
+			try {
+				isMeasuring = false;
+			} finally {
+				lock.unlock();
+			}
+			isUpdateNeeded = false;
 		}
 	}
 
@@ -420,12 +418,12 @@ public class DemoUIActivity extends Activity implements
 			startActivity(intent);
 
 			isRecording = false;
-			
+
 			if (null != recorder) {
 				recorder.release();
 				recorder = null;
 			}
-			
+
 			if (null != timer) {
 				timer.cancel();
 				timer.purge();
@@ -443,19 +441,22 @@ public class DemoUIActivity extends Activity implements
 
 	class UpdateTimeTask extends TimerTask {
 		public void run() {
-//			android.os.Process
-//					.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-			
-			/*if (!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.VISIBLE) &&
-				!(DemoUIActivity.this.getWindow().getDecorView().findViewById(android.R.id.content).getVisibility() == View.INVISIBLE))	{
-				android.util.Log.e("RUN", "View is not shown yet");
-				return;
-			}
-			
-			else	{
-				android.util.Log.e("RUN", "View is shown. Will now process...");
-			}*/
-			
+			// android.os.Process
+			// .setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+
+			/*
+			 * if
+			 * (!(DemoUIActivity.this.getWindow().getDecorView().findViewById(
+			 * android.R.id.content).getVisibility() == View.VISIBLE) &&
+			 * !(DemoUIActivity
+			 * .this.getWindow().getDecorView().findViewById(android
+			 * .R.id.content).getVisibility() == View.INVISIBLE)) {
+			 * android.util.Log.e("RUN", "View is not shown yet"); return; }
+			 * 
+			 * else { android.util.Log.e("RUN",
+			 * "View is shown. Will now process..."); }
+			 */
+
 			/** Testing real-time run */
 			DemoUIActivity.this.runOnUiThread(new Runnable() {
 				@Override
@@ -463,9 +464,7 @@ public class DemoUIActivity extends Activity implements
 					if (isUpdateNeeded) {
 						uiCounter += TIME_INTERVAL;
 						if (uiCounter > UI_UPDATE_INTERVAL) {
-						
 							uiCounter = uiCounter % TIME_INTERVAL;
-							
 							lock.lock();
 							try {
 								rpmCal.setText(currentRPM + " RPM");
@@ -478,128 +477,148 @@ public class DemoUIActivity extends Activity implements
 			});
 
 			if (isRecording) {
-				int samples = 2;
-				toProcess = (toProcess + 1) % samples;
-				
-				if (isMeasuring)	{
+				if (isMeasuring) {
 					if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false) {
-						if (toProcess == 0)	{
-							int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
-							jTach.jTachPush(mAudioFrame, nRead);
-							
-							int processResult = 0;
-							
-							lock.lock();
-							
-							try {
-								processResult = (int) jTach.jTachProcess();
-								currentRPM = (int) (processResult * 60 / bladeNumber);
-							} finally {
-								lock.unlock();
+						int nRead = recorder.read(mAudioFrame,
+								AUDIO_BUFFER_SIZE);
+						lock.lock();
+						try {
+							if (needTachoInit) {
+								jTach.jTachInit();
+								jTach.jTachConfig((long) convertRPMtoRPS(
+										rpm.getProgress() + minValue,
+										bladeNumber));
+								needTachoInit = false;
 							}
-							
-							int pivots = CONFIGURES_FOR_DEBUGGING_PURPOSE.pivots;
-							
-							if (resultArray == null) {
-								// Create new array
-								resultArray = new float[pivots];
-								for (int i = 0; i < pivots; i ++) {
-									resultArray[i] = CONFIGURES_FOR_DEBUGGING_PURPOSE.base;
-								}
-							}
-							
-							else	{
-								for (int i = 0; i < pivots - 1; i ++) {
-									resultArray[i] = resultArray[i+1];
-								}
-								
-								//Random rnd = new Random();
-						        //resultArray[pivots - 1] = rnd.nextFloat() * 450.0f;
-								resultArray[pivots - 1] = processResult;
-							}
-							
-							for (int i = 0; i < pivots; i ++) {
-								chartView.drawLine(i, resultArray[i]);
-							}
-							
-							chartView.requestRender();
-							
-							/*android.util.Log.e("MEASURING", "results = ");
-							
-							for (int i = 0; i < pivots; i ++) {
-								android.util.Log.e(Integer.toString(i), Float.toString(resultArray[i]));
-							}*/
-						}						
-					}
-					
-					// For debug mode
-					else {
-						if (toProcess == 0)	{
-							mAudioFrame.clear();
-							mAudioFrame.position(0);
-							mAudioFrame.put(audioDataInBytes, seekPos,
-									AUDIO_BUFFER_SIZE);
-							seekPos += AUDIO_BUFFER_SIZE;
-							if (seekPos >= audioDataLengthInBytes - AUDIO_BUFFER_SIZE) {
-								seekPos = 0;
-							}
-							
-							jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
-							
-							lock.lock();
-							
-							try {
-								int processResult = (int) jTach.jTachProcess();
-								currentRPM = (int) (processResult * 60 / bladeNumber);
-							} finally {
-								lock.unlock();
+						} finally {
+							lock.unlock();
+						}
+
+						jTach.jTachPush(mAudioFrame, nRead);
+						float processResult = jTach.jTachProcess();
+
+						int pivots = CONFIGURES_FOR_DEBUGGING_PURPOSE.pivots;
+						if (resultList == null) {
+							// Create new array
+							resultList = new LinkedList<Float>();
+							for (int i = 0; i < pivots; i++) {
+								resultList.addLast(Float.valueOf(minValue));
 							}
 						}
-					} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode == false)
-				}
+						resultList.removeFirst();
 
-				else
-				if (!isMeasuring/*isSeeking*/)	{
-					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
-					jTach.jTachPush(mAudioFrame, nRead);
-					
-					//if (uiCounter % 200 == 0) {
-					if (toProcess == 1) {
-						
 						lock.lock();
-						
 						try {
-							jTach.jTachProcess();
+							currentRPM = (int) convertRPStoRPM(processResult,
+									bladeNumber);
+							if (currentRPM <= minValue) {
+								resultList.addLast(Float.valueOf(minValue));
+							} else {
+								resultList.addLast(Float
+										.valueOf(currentRPM));
+							}
 						} finally {
 							lock.unlock();
 						}
 						
-						int width = seekView.getWidth();
-						int height = seekView.getHeight();
-	
-						if (fftOutArray == null) {
-							// Create new array
-							fftOutArray = new float[width];
-						} else if (fftOutArray.length != width) {
-							// Initialize the array again
-							fftOutArray = new float[width];
+						float maxRender = rpm.getMax();
+						float graphHeight = chartView.getHeight();
+						int i = 0;
+						for (Float f : resultList) {
+							chartView.drawLine(i, (f - minValue) / maxRender * graphHeight);
+							i ++;
 						}
-						
-						//android.util.Log.e("PRE-FFT", "" + width + " " + height);
-						maxFFT = jTach.jTachFFTOut(0, rpm.getMax() + minValue, width, fftOutArray);
-	
-						if (maxFFT >= 0) { // No error
-							// Draw the spectrum here
-							for (int x = 0; x < width; x++) {
-								seekView.drawLine(x, (fftOutArray[x] / maxFFT) * height);
-								//android.util.Log.e("FFTOUT", "" + fftOutArray[x]);
-							}
-							
-							seekView.requestRender();
-						}
+
+						chartView.requestRender();
+
+						/*
+						 * android.util.Log.e("MEASURING", "results = ");
+						 * 
+						 * for (int i = 0; i < pivots; i ++) {
+						 * android.util.Log.e(Integer.toString(i),
+						 * Float.toString(resultArray[i])); }
+						 */
 					}
+					// For debug mode
+					else {
+						mAudioFrame.clear();
+						mAudioFrame.position(0);
+						mAudioFrame.put(audioDataInBytes, seekPos,
+								AUDIO_BUFFER_SIZE);
+						seekPos += AUDIO_BUFFER_SIZE;
+						if (seekPos >= audioDataLengthInBytes
+								- AUDIO_BUFFER_SIZE) {
+							seekPos = 0;
+						}
+						lock.lock();
+						try {
+							if (needTachoInit) {
+								jTach.jTachInit();
+								jTach.jTachConfig((long) convertRPMtoRPS(
+										rpm.getProgress() + minValue,
+										bladeNumber));
+								needTachoInit = false;
+							}
+						} finally {
+							lock.unlock();
+						}
+
+						jTach.jTachPush(mAudioFrame, AUDIO_BUFFER_SIZE);
+						float processResult = jTach.jTachProcess();
+						lock.lock();
+						try {
+							currentRPM = (int) convertRPStoRPM(processResult,
+									bladeNumber);
+						} finally {
+							lock.unlock();
+						}
+					} // End if (CONFIGURES_FOR_DEBUGGING_PURPOSE.debugMode ==
+						// false)
+				} else if (!isMeasuring/* isSeeking */) {
+					int nRead = recorder.read(mAudioFrame, AUDIO_BUFFER_SIZE);
+
+					jTach.jTachPush(mAudioFrame, nRead);
+					jTach.jTachProcess();
 				}
+
+				int width = seekView.getWidth();
+				int height = seekView.getHeight();
+
+				if (fftOutArray == null) {
+					// Create new array
+					fftOutArray = new float[width];
+				} else if (fftOutArray.length != width) {
+					// Initialize the array again
+					fftOutArray = new float[width];
+				}
+
+				// android.util.Log.e("PRE-FFT", "" + width + " " +
+				// height);
+				maxFFT = jTach.jTachFFTOut(
+						(int) convertRPMtoRPS(minValue, bladeNumber),
+						(int) convertRPMtoRPS(rpm.getMax() + minValue,
+								bladeNumber), width, fftOutArray);
+
+				if (maxFFT >= 0) { // No error
+					// Draw the spectrum here
+					for (int x = 0; x < width; x++) {
+						seekView.drawLine(x, (fftOutArray[x] / maxFFT) * height);
+						// android.util.Log.e("FFTOUT", "" +
+						// fftOutArray[x]);
+					}
+
+					seekView.requestRender();
+				}
+
 			} // End if (isRecording)
 		}
+	}
+
+	private float convertRPStoRPM(float RPS, int bladeNumber) {
+		return RPS * 60 / bladeNumber;
+	}
+
+	private float convertRPMtoRPS(float RPM, int bladeNumber) {
+		return RPM / 60 * bladeNumber;
 	}
 }
